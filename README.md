@@ -7,11 +7,11 @@ This repository holds the companion material of the book: the browser apps, the 
 
 ## The apps (no installation)
 
-Open **https://yamkhoontor.github.io/datums-book/** in a web browser. There is one app for each chapter, with a button for each worked example in the chapter. The apps also run offline: download the `apps` folder and open `index.html`.
+Open **https://yamkhoontor.github.io/datums-book/** in a web browser. There is one app for each chapter, with a button for each worked example in the chapter. The apps also run offline: press the green **Code** button, choose **Download ZIP**, unzip it and open `apps/index.html`.
 
 ## The notebooks in Google Colab (no installation)
 
-Press a badge to open the chapter's notebook in Google Colab (a Google account is needed). Choose *File → Save a copy in Drive* to keep your changes, then *Runtime → Run all*.
+Press a badge to open the chapter's notebook in Google Colab (a Google account is needed). Choose *Runtime → Run all*. Changes are not kept when the tab is closed, so the notebooks always reopen as published.
 
 | Notebook | Open |
 |---|---|
