@@ -33,6 +33,8 @@ table.res td.v{text-align:right;white-space:nowrap}
 .note{font-size:13.5px;color:var(--quiet)}
 .exbar{margin-bottom:14px}.exb button{margin:0 6px 6px 0}.exb button.on{background:var(--accent);color:#fff}
 #exnote{margin:4px 0 0}
+table.res tr.hl td{background:#ffe9a8;font-weight:700}
+table.res tr.hl td:first-child{box-shadow:inset 4px 0 0 #d4a017}
 .try{background:var(--pale);border-radius:10px;padding:10px 14px;margin-top:16px;font-size:14px}
 .try b{color:var(--dark)}
 .warn{color:var(--warn)}.ok{color:var(--ok)}
@@ -331,8 +333,24 @@ const SVY = GEO.SVY21, WGS = GEO.ELLIPSOIDS.WGS84, GRS = GEO.ELLIPSOIDS.GRS80, E
 /* worked-example buttons */
 function S(id, v){ $(id).value = v; }
 function Dm(id, d, m, s){ $(id + "d").value = d; $(id + "m").value = m; $(id + "s").value = s; }
+let HL = [];
+function hl(){
+  document.querySelectorAll("table.res tr").forEach(tr => tr.classList.remove("hl"));
+  if (!HL.length) return;
+  document.querySelectorAll("table.res").forEach(tb => { let head = "";
+    tb.querySelectorAll("tr").forEach(tr => { const th = tr.querySelector("th"); if (th) { head = th.textContent.trim(); return; }
+      const td = tr.querySelector("td"); if (!td) return; const lab = td.textContent.trim();
+      for (const spec of HL) { let h = "", l = spec; const k = spec.indexOf(" > "); if (k >= 0) { h = spec.slice(0, k); l = spec.slice(k + 3); }
+        if (h && !head.startsWith(h)) continue;
+        const ok = l.endsWith("…") ? lab.startsWith(l.slice(0, -1)) : lab === l;
+        if (ok) { tr.classList.add("hl"); break; } } }); });
+}
 function EX(i){ EXS[i][0](); const f = document.querySelector(".grid input, .grid select"); if (f) f.dispatchEvent(new Event("input", {bubbles: true}));
-  $("exnote").innerHTML = EXS[i][1]; document.querySelectorAll(".exb button").forEach((b, j) => b.classList.toggle("on", j === i)); }
+  $("exnote").innerHTML = EXS[i][1]; HL = EXS[i][2] || []; hl();
+  document.querySelectorAll(".exb button").forEach((b, j) => b.classList.toggle("on", j === i));
+  const r = document.querySelector("table.res tr.hl"); if (r && window.innerWidth < 760) r.scrollIntoView({behavior: "smooth", block: "center"}); }
+document.addEventListener("input", () => setTimeout(hl, 0));
+document.addEventListener("change", () => setTimeout(hl, 0));
 
 /* small user-interface helpers */
 const $ = id => document.getElementById(id);
@@ -379,8 +397,8 @@ function calc(){
 }
 reset(); wire(calc);
 
-const EXS = [[function(){Dm("lat",1,27,10.2276); Dm("lon",103,46,16.1777); S("h",15.814);}, 'The app works from Kertau to the modern datum, so it runs Example 5.1 in reverse: S on Kertau (1° 27′ 10.2276″, 103° 46′ 16.1777″, h 15.814 m) returns by <b>Method A</b> to S on the modern datum, 1° 27′ 10.0080″, 103° 46′ 09.9701″. The shift is 192 m, almost all east.'],
-[function(){Dm("lat",1,51,27.38567); Dm("lon",102,56,37.52660); S("h",2.338);}, "JUPEM's MRT68 result for its test point. <b>Method A</b>, the three-parameter set, returns 1° 51′ 27.0567″, 102° 56′ 31.7058″: within 2 m of the GDM2000 values given in Example 5.2 (1° 51′ 27.04635″, 102° 56′ 31.75616″). <b>Method B</b>, JUPEM's own parameters, returns their PMGSN94 test point of Example 9.1 to the millimetre."]];
+const EXS = [[function(){Dm("lat",1,27,10.2276); Dm("lon",103,46,16.1777); S("h",15.814);}, 'The app works from Kertau to the modern datum, so it runs Example 5.1 in reverse: S on Kertau (1° 27′ 10.2276″, 103° 46′ 16.1777″, h 15.814 m) returns by <b>Method A</b> to S on the modern datum, 1° 27′ 10.0080″, 103° 46′ 09.9701″. The shift is 192 m, almost all east.', ['Method A > Latitude', 'Method A > Longitude', 'Method A > Shift east, north', 'Height change, A']],
+[function(){Dm("lat",1,51,27.38567); Dm("lon",102,56,37.52660); S("h",2.338);}, "JUPEM's MRT68 result for its test point. <b>Method A</b>, the three-parameter set, returns 1° 51′ 27.0567″, 102° 56′ 31.7058″: within 2 m of the GDM2000 values given in Example 5.2 (1° 51′ 27.04635″, 102° 56′ 31.75616″). <b>Method B</b>, JUPEM's own parameters, returns their PMGSN94 test point of Example 9.1 to the millimetre.", ['Method A > Latitude', 'Method A > Longitude', 'Method B > Latitude', 'Method B > Longitude']]];
 
 </script>
 </body>

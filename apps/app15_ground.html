@@ -33,6 +33,8 @@ table.res td.v{text-align:right;white-space:nowrap}
 .note{font-size:13.5px;color:var(--quiet)}
 .exbar{margin-bottom:14px}.exb button{margin:0 6px 6px 0}.exb button.on{background:var(--accent);color:#fff}
 #exnote{margin:4px 0 0}
+table.res tr.hl td{background:#ffe9a8;font-weight:700}
+table.res tr.hl td:first-child{box-shadow:inset 4px 0 0 #d4a017}
 .try{background:var(--pale);border-radius:10px;padding:10px 14px;margin-top:16px;font-size:14px}
 .try b{color:var(--dark)}
 .warn{color:var(--warn)}.ok{color:var(--ok)}
@@ -334,8 +336,24 @@ const SVY = GEO.SVY21, WGS = GEO.ELLIPSOIDS.WGS84, GRS = GEO.ELLIPSOIDS.GRS80, E
 /* worked-example buttons */
 function S(id, v){ $(id).value = v; }
 function Dm(id, d, m, s){ $(id + "d").value = d; $(id + "m").value = m; $(id + "s").value = s; }
+let HL = [];
+function hl(){
+  document.querySelectorAll("table.res tr").forEach(tr => tr.classList.remove("hl"));
+  if (!HL.length) return;
+  document.querySelectorAll("table.res").forEach(tb => { let head = "";
+    tb.querySelectorAll("tr").forEach(tr => { const th = tr.querySelector("th"); if (th) { head = th.textContent.trim(); return; }
+      const td = tr.querySelector("td"); if (!td) return; const lab = td.textContent.trim();
+      for (const spec of HL) { let h = "", l = spec; const k = spec.indexOf(" > "); if (k >= 0) { h = spec.slice(0, k); l = spec.slice(k + 3); }
+        if (h && !head.startsWith(h)) continue;
+        const ok = l.endsWith("…") ? lab.startsWith(l.slice(0, -1)) : lab === l;
+        if (ok) { tr.classList.add("hl"); break; } } }); });
+}
 function EX(i){ EXS[i][0](); const f = document.querySelector(".grid input, .grid select"); if (f) f.dispatchEvent(new Event("input", {bubbles: true}));
-  $("exnote").innerHTML = EXS[i][1]; document.querySelectorAll(".exb button").forEach((b, j) => b.classList.toggle("on", j === i)); }
+  $("exnote").innerHTML = EXS[i][1]; HL = EXS[i][2] || []; hl();
+  document.querySelectorAll(".exb button").forEach((b, j) => b.classList.toggle("on", j === i));
+  const r = document.querySelector("table.res tr.hl"); if (r && window.innerWidth < 760) r.scrollIntoView({behavior: "smooth", block: "center"}); }
+document.addEventListener("input", () => setTimeout(hl, 0));
+document.addEventListener("change", () => setTimeout(hl, 0));
 
 /* small user-interface helpers */
 const $ = id => document.getElementById(id);
@@ -381,12 +399,12 @@ function calc(){
 }
 ex151(); wire(calc);
 
-const EXS = [[function(){ex151();}, 'A measured slope distance of 1 254.386 m reduced to the SVY21 grid. Compare each factor and the grid distance with Example 15.1.'],
-[function(){S("mode","grid2"); S("d",350); S("rl1",14); S("rl2",14); S("hi",0); S("ht",0); S("N",9.7); S("e1",4200); S("e2",4520); S("grid","svy");}, 'Setting out in Tuas: grid 350.000 m, works at RL 14.0 m. Ground distance 349.9989 m (Example 15.2).'],
-[function(){ex151(); S("e1",350704); S("e2",351917); S("grid","utm");}, "Example 15.1's line on UTM 48N: grid distance 1 253.6044 m, 167 mm short of the ground (Example 15.3)."],
-[function(){S("mode","grid2"); S("d",500); S("rl1",120); S("rl2",120); S("hi",0); S("ht",0); S("N",9.7); S("e1",20750); S("e2",21250); S("grid","svy");}, 'A high site at RL 120 m near E 21 000: combined factor about −19.8 ppm, 9.9 mm over 500 m (Example 15.4).'],
-[function(){bridge();}, 'The bridge deck from the SVY21 grid length: 1 457.957 m at deck level (Example 15.5).'],
-[function(){bridge(); const a = GEO.utm(CASE.S.lat, CASE.S.lon, ...WGS), b = GEO.utm(CASE.J.lat, CASE.J.lon, ...WGS); S("d", Math.hypot(b.N - a.N, b.E - a.E).toFixed(3)); S("e1", a.E.toFixed(3)); S("e2", b.E.toFixed(3)); S("grid","utm");}, 'The same deck from the UTM grid length, 1 457.704 m: the ground length is again 1 457.957 m, but the correction is 252 mm instead of 5.5 mm (Example 15.5).']];
+const EXS = [[function(){ex151();}, 'A measured slope distance of 1 254.386 m reduced to the SVY21 grid. Compare each factor and the grid distance with Example 15.1.', ['Horizontal distance', 'Elevation factor…', 'Line scale factor', 'Combined', 'Grid distance']],
+[function(){S("mode","grid2"); S("d",350); S("rl1",14); S("rl2",14); S("hi",0); S("ht",0); S("N",9.7); S("e1",4200); S("e2",4520); S("grid","svy");}, 'Setting out in Tuas: grid 350.000 m, works at RL 14.0 m. Ground distance 349.9989 m (Example 15.2).', ['Elevation factor…', 'Line scale factor', 'Combined', 'Ground (horizontal) distance to set out']],
+[function(){ex151(); S("e1",350704); S("e2",351917); S("grid","utm");}, "Example 15.1's line on UTM 48N: grid distance 1 253.6044 m, 167 mm short of the ground (Example 15.3).", ['Line scale factor', 'Combined', 'Grid distance', 'Grid minus ground']],
+[function(){S("mode","grid2"); S("d",500); S("rl1",120); S("rl2",120); S("hi",0); S("ht",0); S("N",9.7); S("e1",20750); S("e2",21250); S("grid","svy");}, 'A high site at RL 120 m near E 21 000: combined factor about −19.8 ppm, 9.9 mm over 500 m (Example 15.4).', ['Elevation factor…', 'Line scale factor', 'Combined', 'Ground minus grid']],
+[function(){bridge();}, 'The bridge deck from the SVY21 grid length: 1 457.957 m at deck level (Example 15.5).', ['Combined', 'Ground (horizontal) distance to set out', 'Ground minus grid']],
+[function(){bridge(); const a = GEO.utm(CASE.S.lat, CASE.S.lon, ...WGS), b = GEO.utm(CASE.J.lat, CASE.J.lon, ...WGS); S("d", Math.hypot(b.N - a.N, b.E - a.E).toFixed(3)); S("e1", a.E.toFixed(3)); S("e2", b.E.toFixed(3)); S("grid","utm");}, 'The same deck from the UTM grid length, 1 457.704 m: the ground length is again 1 457.957 m, but the correction is 252 mm instead of 5.5 mm (Example 15.5).', ['Line scale factor', 'Combined', 'Ground (horizontal) distance to set out', 'Ground minus grid']]];
 
 </script>
 </body>

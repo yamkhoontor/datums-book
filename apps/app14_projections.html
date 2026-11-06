@@ -33,6 +33,8 @@ table.res td.v{text-align:right;white-space:nowrap}
 .note{font-size:13.5px;color:var(--quiet)}
 .exbar{margin-bottom:14px}.exb button{margin:0 6px 6px 0}.exb button.on{background:var(--accent);color:#fff}
 #exnote{margin:4px 0 0}
+table.res tr.hl td{background:#ffe9a8;font-weight:700}
+table.res tr.hl td:first-child{box-shadow:inset 4px 0 0 #d4a017}
 .try{background:var(--pale);border-radius:10px;padding:10px 14px;margin-top:16px;font-size:14px}
 .try b{color:var(--dark)}
 .warn{color:var(--warn)}.ok{color:var(--ok)}
@@ -329,8 +331,24 @@ const SVY = GEO.SVY21, WGS = GEO.ELLIPSOIDS.WGS84, GRS = GEO.ELLIPSOIDS.GRS80, E
 /* worked-example buttons */
 function S(id, v){ $(id).value = v; }
 function Dm(id, d, m, s){ $(id + "d").value = d; $(id + "m").value = m; $(id + "s").value = s; }
+let HL = [];
+function hl(){
+  document.querySelectorAll("table.res tr").forEach(tr => tr.classList.remove("hl"));
+  if (!HL.length) return;
+  document.querySelectorAll("table.res").forEach(tb => { let head = "";
+    tb.querySelectorAll("tr").forEach(tr => { const th = tr.querySelector("th"); if (th) { head = th.textContent.trim(); return; }
+      const td = tr.querySelector("td"); if (!td) return; const lab = td.textContent.trim();
+      for (const spec of HL) { let h = "", l = spec; const k = spec.indexOf(" > "); if (k >= 0) { h = spec.slice(0, k); l = spec.slice(k + 3); }
+        if (h && !head.startsWith(h)) continue;
+        const ok = l.endsWith("…") ? lab.startsWith(l.slice(0, -1)) : lab === l;
+        if (ok) { tr.classList.add("hl"); break; } } }); });
+}
 function EX(i){ EXS[i][0](); const f = document.querySelector(".grid input, .grid select"); if (f) f.dispatchEvent(new Event("input", {bubbles: true}));
-  $("exnote").innerHTML = EXS[i][1]; document.querySelectorAll(".exb button").forEach((b, j) => b.classList.toggle("on", j === i)); }
+  $("exnote").innerHTML = EXS[i][1]; HL = EXS[i][2] || []; hl();
+  document.querySelectorAll(".exb button").forEach((b, j) => b.classList.toggle("on", j === i));
+  const r = document.querySelector("table.res tr.hl"); if (r && window.innerWidth < 760) r.scrollIntoView({behavior: "smooth", block: "center"}); }
+document.addEventListener("input", () => setTimeout(hl, 0));
+document.addEventListener("change", () => setTimeout(hl, 0));
 
 /* small user-interface helpers */
 const $ = id => document.getElementById(id);
@@ -375,11 +393,11 @@ function calc(){
 }
 set("S", "J"); wire(calc);
 
-const EXS = [[function(){S("la1",1.2); S("lo1",103.9); S("la2",1.1); S("lo2",104.05);}, 'P₁ (1° 12′ N, 103° 54′ E) to P₂ (1° 06′ N, 104° 03′ E). Compare the ellipsoid, UTM 48N and SVY21 rows with the table of Example 11.4.'],
-[function(){set("S","J");}, 'The bridge span S to J. The <b>SVY21</b> and <b>UTM 48N</b> rows give the grid spans of Example 12.1 against the geodesic of 1 457.950 m.'],
-[function(){set("S","J");}, 'Read <b>The From point on three grids</b>: S on UTM zone 48N is N 160 613.463, E 363 102.191 m, k = 0.999 832 0, convergence −1′ 52.3″ (Example 14.1).'],
-[function(){S("la1",6.1397191444); S("lo1",100.3851602333); S("la2",6.15); S("lo2",100.4);}, "JUPEM's test point, GDM2000 6° 08′ 22.98892″ N, 100° 23′ 06.57684″ E. The <b>Kedah and Perlis Cassini</b> row should read N 19 364.3195, E −27 805.4063 m, as published (Example 14.2)."],
-[function(){S("la1",6.1397191444); S("lo1",100.3851602333); S("la2",6.15); S("lo2",100.4);}, 'The same point on the <b>Peninsula RSO</b> grid: computed N 679 690.970, E 266 843.897 m; JUPEM publishes 679 690.914, 266 843.898 (Example 14.3).']];
+const EXS = [[function(){S("la1",1.2); S("lo1",103.9); S("la2",1.1); S("lo2",104.05);}, 'P₁ (1° 12′ N, 103° 54′ E) to P₂ (1° 06′ N, 104° 03′ E). Compare the ellipsoid, UTM 48N and SVY21 rows with the table of Example 11.4.', ['On the ellipsoid', 'SVY21 > distance, minus true', 'SVY21 > bearing minus azimuth', 'UTM 48N > distance, minus true', 'UTM 48N > bearing minus azimuth']],
+[function(){set("S","J");}, 'The bridge span S to J. The <b>SVY21</b> and <b>UTM 48N</b> rows give the grid spans of Example 12.1 against the geodesic of 1 457.950 m.', ['On the ellipsoid', 'SVY21 > distance, minus true', 'UTM 48N > distance, minus true']],
+[function(){set("S","J");}, 'Read <b>The From point on three grids</b>: S on UTM zone 48N is N 160 613.463, E 363 102.191 m, k = 0.999 832 0, convergence −1′ 52.3″ (Example 14.1).', ['UTM zone…', 'UTM scale factor, convergence']],
+[function(){S("la1",6.1397191444); S("lo1",100.3851602333); S("la2",6.15); S("lo2",100.4);}, "JUPEM's test point, GDM2000 6° 08′ 22.98892″ N, 100° 23′ 06.57684″ E. The <b>Kedah and Perlis Cassini</b> row should read N 19 364.3195, E −27 805.4063 m, as published (Example 14.2).", ['Kedah and Perlis Cassini (GRS80): N, E']],
+[function(){S("la1",6.1397191444); S("lo1",100.3851602333); S("la2",6.15); S("lo2",100.4);}, 'The same point on the <b>Peninsula RSO</b> grid: computed N 679 690.970, E 266 843.897 m; JUPEM publishes 679 690.914, 266 843.898 (Example 14.3).', ['Peninsula RSO (GRS80): N, E']]];
 
 </script>
 </body>

@@ -33,6 +33,8 @@ table.res td.v{text-align:right;white-space:nowrap}
 .note{font-size:13.5px;color:var(--quiet)}
 .exbar{margin-bottom:14px}.exb button{margin:0 6px 6px 0}.exb button.on{background:var(--accent);color:#fff}
 #exnote{margin:4px 0 0}
+table.res tr.hl td{background:#ffe9a8;font-weight:700}
+table.res tr.hl td:first-child{box-shadow:inset 4px 0 0 #d4a017}
 .try{background:var(--pale);border-radius:10px;padding:10px 14px;margin-top:16px;font-size:14px}
 .try b{color:var(--dark)}
 .warn{color:var(--warn)}.ok{color:var(--ok)}
@@ -328,8 +330,24 @@ const SVY = GEO.SVY21, WGS = GEO.ELLIPSOIDS.WGS84, GRS = GEO.ELLIPSOIDS.GRS80, E
 /* worked-example buttons */
 function S(id, v){ $(id).value = v; }
 function Dm(id, d, m, s){ $(id + "d").value = d; $(id + "m").value = m; $(id + "s").value = s; }
+let HL = [];
+function hl(){
+  document.querySelectorAll("table.res tr").forEach(tr => tr.classList.remove("hl"));
+  if (!HL.length) return;
+  document.querySelectorAll("table.res").forEach(tb => { let head = "";
+    tb.querySelectorAll("tr").forEach(tr => { const th = tr.querySelector("th"); if (th) { head = th.textContent.trim(); return; }
+      const td = tr.querySelector("td"); if (!td) return; const lab = td.textContent.trim();
+      for (const spec of HL) { let h = "", l = spec; const k = spec.indexOf(" > "); if (k >= 0) { h = spec.slice(0, k); l = spec.slice(k + 3); }
+        if (h && !head.startsWith(h)) continue;
+        const ok = l.endsWith("…") ? lab.startsWith(l.slice(0, -1)) : lab === l;
+        if (ok) { tr.classList.add("hl"); break; } } }); });
+}
 function EX(i){ EXS[i][0](); const f = document.querySelector(".grid input, .grid select"); if (f) f.dispatchEvent(new Event("input", {bubbles: true}));
-  $("exnote").innerHTML = EXS[i][1]; document.querySelectorAll(".exb button").forEach((b, j) => b.classList.toggle("on", j === i)); }
+  $("exnote").innerHTML = EXS[i][1]; HL = EXS[i][2] || []; hl();
+  document.querySelectorAll(".exb button").forEach((b, j) => b.classList.toggle("on", j === i));
+  const r = document.querySelector("table.res tr.hl"); if (r && window.innerWidth < 760) r.scrollIntoView({behavior: "smooth", block: "center"}); }
+document.addEventListener("input", () => setTimeout(hl, 0));
+document.addEventListener("change", () => setTimeout(hl, 0));
 
 /* small user-interface helpers */
 const $ = id => document.getElementById(id);
@@ -377,8 +395,8 @@ function calc(){
 }
 wire(calc);
 
-const EXS = [[function(){for (let i = 0; i < 5; i++) $("u" + i).checked = true; S("bv",0);}, "All five common points, no blunder. Compare scale (+26 ppm), rotation (12° 29′ 59.9″), s₀ (3.2 mm), the residuals and K1 (−5.1, −1.3 mm) with Example 10.1. Example 10.2, seven parameters, is in this chapter's Colab notebook."],
-[function(){for (let i = 0; i < 5; i++) $("u" + i).checked = true; S("bp",2); S("bv",50);}, "The same fit with a 50 mm error on C3's SVY21 easting (Section 10.5): s₀ grows and the residuals spread to every point."]];
+const EXS = [[function(){for (let i = 0; i < 5; i++) $("u" + i).checked = true; S("bv",0);}, "All five common points, no blunder. Compare scale (+26 ppm), rotation (12° 29′ 59.9″), s₀ (3.2 mm), the residuals and K1 (−5.1, −1.3 mm) with Example 10.1. Example 10.2, seven parameters, is in this chapter's Colab notebook.", ['Scale', 'Rotation', 'Shift c, d', 's0', 'Check point K1, error dE, dN']],
+[function(){for (let i = 0; i < 5; i++) $("u" + i).checked = true; S("bp",2); S("bv",50);}, "The same fit with a 50 mm error on C3's SVY21 easting (Section 10.5): s₀ grows and the residuals spread to every point.", ['s0', 'C3', 'Check point K1, error dE, dN']]];
 
 </script>
 </body>
