@@ -47,7 +47,7 @@ footer{max-width:1100px;margin:10px auto 30px;padding:0 16px;font-size:12px;colo
 <body>
 <header><div class="num">App 11 · Chapter 11</div><h1>One mark, three countries</h1><p>A mark positioned in ITRF2020 in a common campaign, expressed on SVY21 (Singapore), GDM2000 (Malaysia) and SRGI2013 (Indonesia), and on each country's grids.</p></header>
 <main>
-<div class="card exbar"><h2>Worked examples in the book</h2><div class="exb"><button class="ghost" onclick="EX(0)">Example 11.1</button> <button class="ghost" onclick="EX(1)">Example 11.2</button> <button class="ghost" onclick="EX(2)">Example 11.3</button></div><p class="note" id="exnote">Press a button to load the values of a worked example in the book.</p></div>
+<div class="card exbar"><h2>Worked examples in the book</h2><div class="exb"><button class="ghost" onclick="EX(0)">Example 11.1</button> <button class="ghost" onclick="EX(1)">Example 11.2</button> <button class="ghost" onclick="EX(2)">Example 11.3</button> <button class="ghost" onclick="EX(3)">Example 11.4</button></div><p class="note" id="exnote">Press a button to load the values of a worked example in the book.</p></div>
 <div class="grid">
  <div class="card"><h2>The mark (ITRF2020 at the campaign epoch)</h2>
   <label>Latitude N</label><div class="dms"><input id="latd" type="number"><input id="latm" type="number"><input id="lats" type="number" step="any"></div>
@@ -62,6 +62,13 @@ footer{max-width:1100px;margin:10px auto 30px;padding:0 16px;font-size:12px;colo
   <div class="card"><h2>Results</h2><table class="res" id="out"></table></div>
   <div class="card" style="margin-top:12px"><h2>The three example marks</h2><svg id="map"></svg></div>
  </div>
+</div>
+<div class="grid" style="margin-top:14px">
+ <div class="card"><h2>One line on two grids</h2>
+  <label>From: latitude N, longitude E (degrees)</label><div class="row"><input id="l1a" type="number" step="any" value="1.2"><input id="l1o" type="number" step="any" value="103.9"></div>
+  <label>To: latitude N, longitude E (degrees)</label><div class="row"><input id="l2a" type="number" step="any" value="1.1"><input id="l2o" type="number" step="any" value="104.05"></div>
+ </div>
+ <div class="card"><h2>Distance and bearing</h2><table class="res" id="out114"></table></div>
 </div>
 <div class="try"><b>Try this.</b> For mark S, SVY21 and GDM2000 latitude and longitude differ by only a few centimetres, but the grid coordinates are completely different numbers: a datum difference and a projection difference are separate things. For mark B, the SRGI2013 estimate differs from the campaign position by about 0.4 m: fourteen years of plate motion since 2012.0. Change the campaign epoch and watch only that figure change.</div>
 
@@ -393,10 +400,19 @@ function calc(){
   dot(svg, m.P(lat, lon), 3, "var(--accent)", "");
 }
 load("S"); wire(calc);
+function c114(){ const p1 = [val("l1a"), val("l1o")], p2 = [val("l2a"), val("l2o")], [sd, az] = GEO.vincenty(...p1, ...p2, ...WGS);
+  const G = { "SVY21": p => GEO.tmForward(...p, ...SVY, ...WGS), "UTM 48N": p => { const u = GEO.utm(...p, ...WGS); return [u.N, u.E]; } };
+  const list = [["On the ellipsoid", F(sd) + " m, azimuth " + GEO.degToDms(az, 1)]];
+  for (const g in G) { const a = G[g](p1), b = G[g](p2), d = Math.hypot(b[0] - a[0], b[1] - a[1]), t = (Math.atan2(b[1] - a[1], b[0] - a[0]) * GEO.R2D + 360) % 360;
+    list.push([g], ["distance, minus true", F(d) + " m, " + ((d - sd) >= 0 ? "+" : "−") + Math.abs((d - sd) * 1000).toFixed(1) + " mm"],
+      ["bearing minus azimuth", ((((t - az) + 540) % 360 - 180) * 3600).toFixed(1) + "″"]); }
+  $("out114").innerHTML = rows(list); }
+document.addEventListener("input", c114); c114();
 
 const EXS = [[function(){load("J");}, 'J in ITRF2020 at 2026.2. Example 11.1 estimates GDM2000 minus ITRF2020 here from plate motion and frame change as about 0.755 m west, 0.145 m north; App 7 gives the plate part. This app uses the shifts measured in the campaign (Example 11.2).', ['Malaysia > Latitude, longitude', 'GDM2000 minus SVY21']],
 [function(){load("S");}, 'S from the common campaign. The <b>SVY21</b> and <b>GDM2000</b> rows reproduce Steps 3 and 4 of Example 11.2: SVY21 grid 48 266.651 N, 20 890.909 E; Johor Cassini −65 213.712, 23 188.429; RSO 160 657.488, 641 448.684.', ['Singapore > Latitude, longitude', 'SVY21 grid N, E', 'Malaysia > Latitude, longitude', 'Johor Cassini N, E', 'Peninsula RSO N, E']],
-[function(){load("B");}, 'B on Batam, ITRF2020 at 2026.2. The <b>SRGI2013</b> rows are the estimate of Example 11.3, by frame change and plate motion back to 2012.0, and its UTM 48N grid coordinates.', ['Indonesia > Latitude, longitude', 'UTM 48N N, E', 'SRGI2013 minus ITRF2020 at campaign']]];
+[function(){load("B");}, 'B on Batam, ITRF2020 at 2026.2. The <b>SRGI2013</b> rows are the estimate of Example 11.3, by frame change and plate motion back to 2012.0, and its UTM 48N grid coordinates.', ['Indonesia > Latitude, longitude', 'UTM 48N N, E', 'SRGI2013 minus ITRF2020 at campaign']],
+[function(){S("l1a",1.2); S("l1o",103.9); S("l2a",1.1); S("l2o",104.05);}, 'P₁ (1° 12′ N, 103° 54′ E) to P₂ (1° 06′ N, 104° 03′ E): compare the ellipsoid, SVY21 and UTM 48N rows of the card <b>One line on two grids</b> with the table of Example 11.4.', ['On the ellipsoid', 'SVY21 > distance, minus true', 'SVY21 > bearing minus azimuth', 'UTM 48N > distance, minus true', 'UTM 48N > bearing minus azimuth']]];
 
 </script>
 </body>

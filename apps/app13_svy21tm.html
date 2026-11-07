@@ -47,7 +47,7 @@ footer{max-width:1100px;margin:10px auto 30px;padding:0 16px;font-size:12px;colo
 <body>
 <header><div class="num">App 13 · Chapter 13</div><h1>SVY21 grid converter, with a check against SiReNT</h1><p>Latitude and longitude to SVY21 northing and easting and back, with scale factor and convergence, tested on published stations.</p></header>
 <main>
-<div class="card exbar"><h2>Worked examples in the book</h2><div class="exb"><button class="ghost" onclick="EX(0)">Example 8.1</button> <button class="ghost" onclick="EX(1)">Example 13.1</button> <button class="ghost" onclick="EX(2)">Example 13.2</button> <button class="ghost" onclick="EX(3)">Example 13.3</button></div><p class="note" id="exnote">Press a button to load the values of a worked example in the book.</p></div>
+<div class="card exbar"><h2>Worked examples in the book</h2><div class="exb"><button class="ghost" onclick="EX(0)">Example 13.1</button> <button class="ghost" onclick="EX(1)">Example 13.2</button> <button class="ghost" onclick="EX(2)">Example 13.3</button></div><p class="note" id="exnote">Press a button to load the values of a worked example in the book.</p></div>
 <div class="grid">
  <div class="card"><h2>Forward: geodetic to grid</h2>
   <label>Latitude N</label><div class="dms"><input id="latd" type="number"><input id="latm" type="number"><input id="lats" type="number" step="any"></div>
@@ -55,7 +55,7 @@ footer{max-width:1100px;margin:10px auto 30px;padding:0 16px;font-size:12px;colo
   <label>Or load a published SiReNT station (SLA)</label><select id="st"><option value="">—</option></select>
   <h2 style="margin-top:14px">Inverse: grid to geodetic</h2>
   <label>Northing, easting (m)</label><div class="row"><input id="n" type="number" step="any"><input id="e" type="number" step="any"></div>
-  <button onclick="loadB()">Bridge mark S</button>
+  <button onclick="loadB()">Mark S</button>
  </div>
  <div>
   <div class="card"><h2>Results</h2><table class="res" id="out"></table></div>
@@ -401,8 +401,7 @@ function calc(){
 }
 loadB(); wire(calc);
 
-const EXS = [[function(){$("st").value = ""; Dm("lat",1,22,2.915414); Dm("lon",103,49,31.975227); S("n",38834.121); S("e",27135.303);}, 'BASE7, the SVY21 datum point (Table 8.2). The forward rows give N 38 834.121, E 27 135.303 m (Example 8.1).', ['Forward > Northing', 'Forward > Easting']],
-[function(){$("st").value = ""; Dm("lat",1,22,21.44707); Dm("lon",103,58,18.00928); S("n",39403.770); S("e",43396.751);}, 'SLYG at Loyang. Forward: compare N, E, scale factor and convergence with Example 13.1.', ['Forward > Northing', 'Forward > Easting', 'Scale factor', 'Convergence']],
+const EXS = [[function(){$("st").value = ""; Dm("lat",1,22,21.44707); Dm("lon",103,58,18.00928); S("n",39403.770); S("e",43396.751);}, 'SLYG at Loyang. Forward: compare N, E, scale factor and convergence with Example 13.1.', ['Forward > Northing', 'Forward > Easting', 'Scale factor', 'Convergence']],
 [function(){$("st").value = ""; Dm("lat",1,22,21.44707); Dm("lon",103,58,18.00928); S("n",39403.770); S("e",43396.751);}, "Inverse from N 39 403.770, E 43 396.751 m: the <b>Inverse</b> rows return SLYG's latitude and longitude (Example 13.2).", ['Inverse > Latitude', 'Inverse > Longitude']],
 [function(){$("st").value = "SLYG"; $("st").dispatchEvent(new Event("change"));}, 'Choose each of the nine SiReNT stations in the list in turn: <b>Computed minus published</b> stays at a millimetre or less, as in Table 13.4 (Example 13.3).', ['Published by SLA', 'Computed minus published']]];
 

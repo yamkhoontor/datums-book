@@ -47,7 +47,7 @@ footer{max-width:1100px;margin:10px auto 30px;padding:0 16px;font-size:12px;colo
 <body>
 <header><div class="num">App 6 · Chapter 6</div><h1>One mark, several ITRF realisations</h1><p>How far apart are ITRF2020, ITRF2014, ITRF2008, ITRF2005 and ITRF2000 at the same place and the same epoch?</p></header>
 <main>
-<div class="card exbar"><h2>Worked examples in the book</h2><div class="exb"><button class="ghost" onclick="EX(0)">Example 6.1</button> <button class="ghost" onclick="EX(1)">Example 7.3</button></div><p class="note" id="exnote">Press a button to load the values of a worked example in the book.</p></div>
+<div class="card exbar"><h2>Worked examples in the book</h2><div class="exb"><button class="ghost" onclick="EX(0)">Example 6.1</button></div><p class="note" id="exnote">Press a button to load the values of a worked example in the book.</p></div>
 <div class="grid">
  <div class="card"><h2>Mark and epoch</h2>
   <label>Latitude N (decimal degrees)</label><input id="lat" type="number" step="any">
@@ -386,8 +386,7 @@ function calc(){
 }
 reset(); wire(calc);
 
-const EXS = [[function(){reset();}, 'Mark S at 2026.2. Sets A (SVY21) and B (PPP, ITRF2020) of Example 6.1 differ by 0.92 m east and 0.25 m north; this app shows that only a few centimetres of that comes from the choice of ITRF realisation. The rest is plate motion: see Apps 7 and 8.', ['ITRF2014', 'ITRF2008', 'ITRF2005']],
-[function(){reset();}, 'The <b>ITRF2000</b> row is Example 7.3: at S in 2026.2, ITRF2000 minus ITRF2020 is about 1 mm west, 53 mm south and 21 mm up.', ['ITRF2000']]];
+const EXS = [[function(){reset();}, 'Mark S at 2026.2. Sets A (SVY21) and B (PPP, ITRF2020) of Example 6.1 differ by 0.92 m east and 0.25 m north; this app shows that only a few centimetres of that comes from the choice of ITRF realisation. The rest is plate motion: see Apps 7 and 8.', ['ITRF2014', 'ITRF2008', 'ITRF2005']]];
 
 </script>
 </body>

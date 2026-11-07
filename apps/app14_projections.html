@@ -45,21 +45,21 @@ footer{max-width:1100px;margin:10px auto 30px;padding:0 16px;font-size:12px;colo
 </style>
 </head>
 <body>
-<header><div class="num">App 14 · Chapter 14</div><h1>One line, five grids</h1><p>The bridge axis on SVY21, UTM 48N, the Johor Cassini grid, the Peninsula RSO and Web Mercator, compared with the true line on the ellipsoid.</p></header>
+<header><div class="num">App 14 · Chapter 14</div><h1>One line, five grids</h1><p>The line S–J on SVY21, UTM 48N, the Johor Cassini grid, the Peninsula RSO and Web Mercator, compared with the true line on the ellipsoid.</p></header>
 <main>
-<div class="card exbar"><h2>Worked examples in the book</h2><div class="exb"><button class="ghost" onclick="EX(0)">Example 11.4</button> <button class="ghost" onclick="EX(1)">Example 12.1</button> <button class="ghost" onclick="EX(2)">Example 14.1</button> <button class="ghost" onclick="EX(3)">Example 14.2</button> <button class="ghost" onclick="EX(4)">Example 14.3</button></div><p class="note" id="exnote">Press a button to load the values of a worked example in the book.</p></div>
+<div class="card exbar"><h2>Worked examples in the book</h2><div class="exb"><button class="ghost" onclick="EX(0)">Example 14.1</button> <button class="ghost" onclick="EX(1)">Example 14.2</button> <button class="ghost" onclick="EX(2)">Example 14.3</button></div><p class="note" id="exnote">Press a button to load the values of a worked example in the book.</p></div>
 <div class="grid">
  <div class="card"><h2>The line (latitude, longitude in decimal degrees)</h2>
   <label>From</label><div class="row"><input id="la1" type="number" step="any"><input id="lo1" type="number" step="any"></div>
   <label>To</label><div class="row"><input id="la2" type="number" step="any"><input id="lo2" type="number" step="any"></div>
-  <button onclick="set('S','J')">Bridge S to J</button> <button class="ghost" onclick="set('S','B')">S to Batam B</button>
+  <button onclick="set('S','J')">S to J</button> <button class="ghost" onclick="set('S','B')">S to Batam B</button>
  </div>
  <div>
   <div class="card"><h2>Grid distance and bearing against the ellipsoid</h2><table class="res" id="out"></table></div>
   <div class="card" style="margin-top:12px"><h2>Grid distance minus true distance (ppm)</h2><svg id="fig"></svg></div>
  </div>
 </div>
-<div class="try"><b>Try this.</b> On the bridge line the SVY21 grid is within a millimetre of the truth and the Johor Cassini within a few millimetres; UTM is 17 cm short per kilometre; Web Mercator is wrong by tens of centimetres even over 1.5 km. Switch to S to Batam B: the line runs outside the area the Singapore and Johor grids were designed for, and their errors grow.</div>
+<div class="try"><b>Try this.</b> On the line S–J the SVY21 grid is within a millimetre of the truth and the Johor Cassini within a few millimetres; UTM is 17 cm short per kilometre; Web Mercator is wrong by tens of centimetres even over 1.5 km. Switch to S to Batam B: the line runs outside the area the Singapore and Johor grids were designed for, and their errors grow.</div>
 
 </main>
 <footer>Companion app to <i>Datums, Coordinate Systems and Map Projections</i> by Yam Khoon Tor. &copy; 2026 Yam Khoon Tor. A teaching aid, provided without warranty: check results independently before use in survey work. The running-case points are illustrative.</footer>
@@ -393,9 +393,7 @@ function calc(){
 }
 set("S", "J"); wire(calc);
 
-const EXS = [[function(){S("la1",1.2); S("lo1",103.9); S("la2",1.1); S("lo2",104.05);}, 'P₁ (1° 12′ N, 103° 54′ E) to P₂ (1° 06′ N, 104° 03′ E). Compare the ellipsoid, UTM 48N and SVY21 rows with the table of Example 11.4.', ['On the ellipsoid', 'SVY21 > distance, minus true', 'SVY21 > bearing minus azimuth', 'UTM 48N > distance, minus true', 'UTM 48N > bearing minus azimuth']],
-[function(){set("S","J");}, 'The bridge span S to J. The <b>SVY21</b> and <b>UTM 48N</b> rows give the grid spans of Example 12.1 against the geodesic of 1 457.950 m.', ['On the ellipsoid', 'SVY21 > distance, minus true', 'UTM 48N > distance, minus true']],
-[function(){set("S","J");}, 'Read <b>The From point on three grids</b>: S on UTM zone 48N is N 160 613.463, E 363 102.191 m, k = 0.999 832 0, convergence −1′ 52.3″ (Example 14.1).', ['UTM zone…', 'UTM scale factor, convergence']],
+const EXS = [[function(){set("S","J");}, 'Read <b>The From point on three grids</b>: S on UTM zone 48N is N 160 613.463, E 363 102.191 m, k = 0.999 832 0, convergence −1′ 52.3″ (Example 14.1).', ['UTM zone…', 'UTM scale factor, convergence']],
 [function(){S("la1",6.1397191444); S("lo1",100.3851602333); S("la2",6.15); S("lo2",100.4);}, "JUPEM's test point, GDM2000 6° 08′ 22.98892″ N, 100° 23′ 06.57684″ E. The <b>Kedah and Perlis Cassini</b> row should read N 19 364.3195, E −27 805.4063 m, as published (Example 14.2).", ['Kedah and Perlis Cassini (GRS80): N, E']],
 [function(){S("la1",6.1397191444); S("lo1",100.3851602333); S("la2",6.15); S("lo2",100.4);}, 'The same point on the <b>Peninsula RSO</b> grid: computed N 679 690.970, E 266 843.897 m; JUPEM publishes 679 690.914, 266 843.898 (Example 14.3).', ['Peninsula RSO (GRS80): N, E']]];
 

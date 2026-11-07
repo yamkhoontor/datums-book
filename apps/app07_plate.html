@@ -47,7 +47,7 @@ footer{max-width:1100px;margin:10px auto 30px;padding:0 16px;font-size:12px;colo
 <body>
 <header><div class="num">App 7 · Chapter 7</div><h1>A moving Earth: how far has the mark travelled?</h1><p>Velocity of a point on the Sunda plate from its Euler pole, and the distance travelled between two epochs.</p></header>
 <main>
-<div class="card exbar"><h2>Worked examples in the book</h2><div class="exb"><button class="ghost" onclick="EX(0)">Example 7.1</button> <button class="ghost" onclick="EX(1)">Example 7.2, steady</button> <button class="ghost" onclick="EX(2)">Example 7.2, with 2004 step</button> <button class="ghost" onclick="EX(3)">Example 7.4</button></div><p class="note" id="exnote">Press a button to load the values of a worked example in the book.</p></div>
+<div class="card exbar"><h2>Worked examples in the book</h2><div class="exb"><button class="ghost" onclick="EX(0)">Example 7.1</button> <button class="ghost" onclick="EX(1)">Example 7.2, steady</button> <button class="ghost" onclick="EX(2)">Example 7.2, with 2004 step</button> <button class="ghost" onclick="EX(3)">Example 7.3</button> <button class="ghost" onclick="EX(4)">Example 7.4</button></div><p class="note" id="exnote">Press a button to load the values of a worked example in the book.</p></div>
 <div class="grid">
  <div class="card"><h2>Mark, epochs and plate</h2>
   <label>Latitude N, longitude E (degrees)</label><div class="row"><input id="lat" type="number" step="any"><input id="lon" type="number" step="any"></div>
@@ -62,7 +62,15 @@ footer{max-width:1100px;margin:10px auto 30px;padding:0 16px;font-size:12px;colo
   <div class="card" style="margin-top:12px"><h2>Movement of the mark in the global frame (mm)</h2><svg id="fig"></svg></div>
  </div>
 </div>
-<div class="try"><b>Try this.</b> Set <i>From</i> to 1995 and <i>To</i> to 2026.2: the mark has moved nearly a metre in the global frame. Nothing has happened to the bridge site; the plate has moved, and everything on it with it. This is why a GNSS result in today's ITRF does not match coordinates fixed decades ago. Change the pole longitude to +94.2 and see the direction reverse: a sign slip here is a common error.</div>
+<div class="grid" style="margin-top:14px">
+ <div class="card"><h2>Change of frame at a fixed epoch</h2>
+  <label>X, Y, Z in ITRF2020 (m)</label><div class="row"><input id="fx" type="number" step="any" value="-1517612.8594"><input id="fy" type="number" step="any" value="6192871.8908"><input id="fz" type="number" step="any" value="160623.5350"></div>
+  <label>Epoch of the coordinates</label><input id="ft" type="number" step="0.1" value="2026.2">
+  <label>Target realisation</label><select id="ftg"><option>ITRF2014</option><option>ITRF2008</option><option>ITRF2005</option><option selected>ITRF2000</option></select>
+ </div>
+ <div class="card"><h2>The same point in the target frame</h2><table class="res" id="out73"></table></div>
+</div>
+<div class="try"><b>Try this.</b> Set <i>From</i> to 1995 and <i>To</i> to 2026.2: the mark has moved nearly a metre in the global frame. Nothing has happened to the mark; the plate has moved, and everything on it with it. This is why a GNSS result in today's ITRF does not match coordinates fixed decades ago. Change the pole longitude to +94.2 and see the direction reverse: a sign slip here is a common error.</div>
 
 </main>
 <footer>Companion app to <i>Datums, Coordinate Systems and Map Projections</i> by Yam Khoon Tor. &copy; 2026 Yam Khoon Tor. A teaching aid, provided without warranty: check results independently before use in survey work. The running-case points are illustrative.</footer>
@@ -385,11 +393,22 @@ function calc(){
   [t0, t1].forEach(t => $("fig").appendChild(svgEl("line", { x1: c.X(t), x2: c.X(t), y1: 18, y2: 258, stroke: "var(--quiet)", "stroke-dasharray": "4 4" })));
 }
 reset(); wire(calc);
+const sgn = (v, d = 3) => (v >= 0 ? "+" : "−") + F(Math.abs(v), d);
+const P73 = { "ITRF2014": [[-1.4, -0.9, 1.4, -0.42], [0.0, -0.1, 0.2, 0.00]], "ITRF2008": [[0.2, 1.0, 3.3, -0.29], [0.0, -0.1, 0.1, 0.03]],
+              "ITRF2005": [[2.7, 0.1, -1.4, 0.65], [0.3, -0.1, 0.1, 0.03]], "ITRF2000": [[-0.2, 0.8, -34.2, 2.25], [0.1, 0.0, -1.7, 0.11]] };
+function c73(){ const X = [val("fx"), val("fy"), val("fz")], t = val("ft"), p = P73[$("ftg").value];
+  const pe = p[0].map((v, i) => v + p[1][i] * (t - 2015)), X2 = GEO.helmert14(X, [...p[0], 0, 0, 0], [...p[1], 0, 0, 0], 2015, t);
+  const d = X2.map((v, i) => (v - X[i]) * 1000), g = GEO.ecefToGeodetic(...X, ...GRS), enu = GEO.ecefToEnu(...d, g[0], g[1]);
+  $("out73").innerHTML = rows([["Parameters at the epoch"], ["T1, T2, T3", pe.slice(0, 3).map(v => sgn(v, 2)).join(", ") + " mm"], ["D", sgn(pe[3], 3) + " ppb"],
+    ["Target frame, same epoch"], ["Target X", F(X2[0], 4) + " m"], ["Target Y", F(X2[1], 4) + " m"], ["Target Z", F(X2[2], 4) + " m"],
+    ["Change X, Y, Z (mm)", d.map(v => sgn(v, 2)).join(", ")], ["Change east, north, up (mm)", enu.map(v => sgn(v, 1)).join(", ")]]); }
+document.addEventListener("input", c73); document.addEventListener("change", c73); c73();
 
 const EXS = [[function(){reset();}, 'Mark S with the Sunda pole of Table 7.1 (49.0° N, 94.2° W entered as −94.2, 0.336°/Myr). The velocity rows are Example 7.1: 28.8 mm/yr east, 7.6 mm/yr south, 29.8 mm/yr towards 104.7°.', ['Velocity east', 'Velocity north', 'Speed, direction']],
 [function(){reset(); $("eq").checked = false;}, '2000.0 to 2026.2 with steady motion: +754 mm east, −198 mm north, 780 mm in all (Example 7.2).', ['east', 'north', 'total']],
 [function(){reset(); $("eq").checked = true;}, 'The same interval with the illustrative earthquake step: +732 mm east, −190 mm north, 756 mm (Example 7.2).', ['east', 'north', 'total']],
-[function(){reset(); $("eq").checked = false;}, 'Example 7.4 propagates S back from 2026.2 to 2000.0 with this velocity: +0.7335, +0.1746, +0.1981 m in X, Y, Z, the same 780 mm as the steady row here. Its first step, the change of frame, is Example 7.3 in App 6.', ['Velocity east', 'Velocity north', 'total']]];
+[function(){S("fx",-1517612.8594); S("fy",6192871.8908); S("fz",160623.5350); S("ft",2026.2); S("ftg","ITRF2000");}, 'S from ITRF2020 to ITRF2000 at 2026.2: X −1 517 612.8638, Y 6 192 871.9131, Z 160 623.4824 m, to 0.1 mm; locally 1 mm west, 53 mm south, 21 mm up (Example 7.3). See the card <b>Change of frame at a fixed epoch</b>.', ['T1, T2, T3', 'D', 'Target X', 'Target Y', 'Target Z', 'Change east, north, up (mm)']],
+[function(){reset(); $("eq").checked = false; S("fx",-1517612.8594); S("fy",6192871.8908); S("fz",160623.5350); S("ft",2026.2); S("ftg","ITRF2000");}, 'Example 7.4 propagates S back from 2026.2 to 2000.0 with this velocity: +0.7335, +0.1746, +0.1981 m in X, Y, Z, the same 780 mm as the steady row here. Its first step, the change of frame, is Example 7.3 in App 6.', ['Target X', 'Target Y', 'Target Z', 'Velocity east', 'Velocity north', 'total']]];
 
 </script>
 </body>

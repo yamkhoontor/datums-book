@@ -47,7 +47,7 @@ footer{max-width:1100px;margin:10px auto 30px;padding:0 16px;font-size:12px;colo
 <body>
 <header><div class="num">App 12 · Chapter 12</div><h1>How much does a Transverse Mercator grid distort?</h1><p>Scale factor, convergence and the arc-to-chord correction, as the central scale factor and the distance from the central meridian change.</p></header>
 <main>
-<div class="card exbar"><h2>Worked examples in the book</h2><div class="exb"><button class="ghost" onclick="EX(0)">Example 12.1, SVY21</button> <button class="ghost" onclick="EX(1)">Example 12.1, UTM</button></div><p class="note" id="exnote">Press a button to load the values of a worked example in the book.</p></div>
+<div class="card exbar"><h2>Worked examples in the book</h2><div class="exb"><button class="ghost" onclick="EX(0)">Example 12.1, SVY21</button> <button class="ghost" onclick="EX(1)">Example 12.1, UTM</button> <button class="ghost" onclick="EX(2)">Example 12.2</button> <button class="ghost" onclick="EX(3)">Example 12.2, retyped</button></div><p class="note" id="exnote">Press a button to load the values of a worked example in the book.</p></div>
 <div class="grid">
  <div class="card"><h2>Projection and place</h2>
   <label>Central scale factor k<sub>0</sub>: <b id="k0v"></b></label><input id="k0" type="range" min="0.9990" max="1.0002" step="0.00001" value="1">
@@ -61,7 +61,16 @@ footer{max-width:1100px;margin:10px auto 30px;padding:0 16px;font-size:12px;colo
   <div class="card" style="margin-top:12px"><h2>Values</h2><table class="res" id="out"></table></div>
  </div>
 </div>
-<div class="try"><b>Try this.</b> With k<sub>0</sub> = 1 the distortion at the bridge site, 7 km west of the SVY21 central meridian, is under 1 ppm: 1 mm in a kilometre. On UTM zone 48N the same site is 137 km from the central meridian and the error is about −170 ppm: 17 cm in a kilometre. Move k<sub>0</sub> and watch the two lines where the scale is exactly true move outwards. Convergence near the equator is tiny: try latitude 45° to see why it matters more elsewhere.</div>
+<div class="grid" style="margin-top:14px">
+ <div class="card"><h2>The line S to J on two grids</h2><table class="res" id="out121"></table></div>
+ <div class="card"><h2>Check a projection definition</h2>
+  <label>latitude_of_origin, central_meridian (decimal degrees)</label><div class="row"><input id="d0a" type="number" step="any" value="1.36666666666667"><input id="d0o" type="number" step="any" value="103.833333333333"></div>
+  <label>scale_factor</label><input id="dk" type="number" step="any" value="1">
+  <label>false_easting, false_northing (m)</label><div class="row"><input id="dfe" type="number" step="any" value="28001.642"><input id="dfn" type="number" step="any" value="38744.572"></div>
+  <table class="res" id="out122"></table>
+ </div>
+</div>
+<div class="try"><b>Try this.</b> With k<sub>0</sub> = 1 the distortion at mark S, 7 km west of the SVY21 central meridian, is under 1 ppm: 1 mm in a kilometre. On UTM zone 48N the same site is 137 km from the central meridian and the error is about −170 ppm: 17 cm in a kilometre. Move k<sub>0</sub> and watch the two lines where the scale is exactly true move outwards. Convergence near the equator is tiny: try latitude 45° to see why it matters more elsewhere.</div>
 
 </main>
 <footer>Companion app to <i>Datums, Coordinate Systems and Map Projections</i> by Yam Khoon Tor. &copy; 2026 Yam Khoon Tor. A teaching aid, provided without warranty: check results independently before use in survey work. The running-case points are illustrative.</footer>
@@ -378,15 +387,30 @@ function calc(){
   const conv = (lam) => Math.atan(Math.tan(lam * GEO.D2R) * Math.sin(lat * GEO.D2R)) * GEO.R2D * 3600;
   const L = val("ll") * 1000, x1 = val("lx") * 1000, tT = -(L) * (2 * x1 + x1) / (6 * k0 * k0 * R * R) * GEO.R2D * 3600;
   const xtrue = k0 < 1 ? Math.sqrt(2 * k0 * k0 * R * R * (1 / k0 - 1)) / 1000 : 0;
-  $("out").innerHTML = rows([["Scale error on the central meridian", at(0)], ["at 7 km (bridge site, SVY21)", at(7.1)], ["at 25 km (edge of Singapore)", at(25)], ["at 137 km (bridge site on UTM 48N)", at(137)],
+  $("out").innerHTML = rows([["Scale error on the central meridian", at(0)], ["at 7 km (mark S, SVY21)", at(7.1)], ["at 25 km (edge of Singapore)", at(25)], ["at 137 km (mark S on UTM 48N)", at(137)],
     ["at 180 km", at(180)], ["Scale is exactly true at", k0 < 1 ? "± " + xtrue.toFixed(0) + " km" : "the central meridian only"],
-    ["Convergence, 1° from the central meridian", conv(1).toFixed(1) + "\""], ["Convergence at the bridge site", conv(dl).toFixed(2) + "\""],
+    ["Convergence, 1° from the central meridian", conv(1).toFixed(1) + "\""], ["Convergence at mark S", conv(dl).toFixed(2) + "\""],
     ["Arc-to-chord, the line above", tT.toFixed(3) + "\""]]);
 }
 wire(calc);
+function c121(){ const S_ = [CASE.S.lat, CASE.S.lon], J_ = [CASE.J.lat, CASE.J.lon], [g] = GEO.vincenty(...S_, ...J_, ...WGS), list = [];
+  const G = { "SVY21": [p => GEO.tmForward(...p, ...SVY, ...WGS), SVY[1], 1, SVY[4]], "UTM 48N": [p => { const u = GEO.utm(...p, ...WGS); return [u.N, u.E]; }, 105, 0.9996, 500000] };
+  list.push(["Geodesic S to J", F(g) + " m"]);
+  for (const k in G) { const [fw, cm, k0, FE] = G[k], a = fw(S_), b = fw(J_), d = Math.hypot(b[0] - a[0], b[1] - a[1]), [, gm] = GEO.tmScaleConv(...S_, cm, k0, ...WGS);
+    const ga = Math.abs(gm) * 3600, gs = ga >= 60 ? Math.floor(ga / 60) + "′ " + (ga % 60).toFixed(1) + "″" : ga.toFixed(2) + "″";
+    list.push([k], ["E′ of S", ((a[1] - FE) / 1000).toFixed(3) + " km"], ["Line scale factor K", (d / g).toFixed(8)], ["Distortion", ((d / g - 1) * 1e6).toFixed(1) + " ppm"],
+      ["Grid span", F(d) + " m"], ["Convergence at S", (gm < 0 ? "−" : "+") + gs]); }
+  $("out121").innerHTML = rows(list); }
+function c122(){ const p = [CASE.S.lat, CASE.S.lon], ref = GEO.tmForward(...p, ...SVY, ...WGS);
+  const t = GEO.tmForward(...p, val("d0a"), val("d0o"), val("dk"), val("dfn"), val("dfe"), ...WGS);
+  $("out122").innerHTML = rows([["Mark S with this definition: N, E", F(t[0]) + ", " + F(t[1]) + " m"], ["With the SVY21 definition: N, E", F(ref[0]) + ", " + F(ref[1]) + " m"],
+    ["Difference ΔN, ΔE", F(t[0] - ref[0]) + ", " + F(t[1] - ref[1]) + " m"]]); }
+document.addEventListener("input", c122); c121(); c122();
 
-const EXS = [[function(){set(1,60);}, 'SVY21: the bridge is 7 km from the central meridian, so the scale error there is under 1 ppm (Example 12.1).', ['at 7 km (bridge site, SVY21)']],
-[function(){set(0.9996,350);}, 'UTM 48N: the bridge is 137 km west of 105° E, where the scale error is about −168 ppm, a quarter of a metre over the 1.46 km span (Example 12.1).', ['at 137 km (bridge site on UTM 48N)']]];
+const EXS = [[function(){set(1,60);}, 'SVY21: E′ of S −7.111 km, K 1.000 000 59, +0.6 ppm, grid span 1 457.951 m, convergence −5.83″ (Example 12.1).', ['SVY21 > E′ of S', 'SVY21 > Line scale factor K', 'SVY21 > Distortion', 'SVY21 > Grid span', 'SVY21 > Convergence at S', 'Geodesic S to J', 'at 7 km (mark S, SVY21)']],
+[function(){set(0.9996,350);}, 'UTM 48N: E′ of S −136.898 km, K 0.999 831 21, −168.8 ppm, grid span 1 457.704 m, convergence −1′ 52.3″ (Example 12.1).', ['UTM 48N > E′ of S', 'UTM 48N > Line scale factor K', 'UTM 48N > Distortion', 'UTM 48N > Grid span', 'UTM 48N > Convergence at S', 'Geodesic S to J', 'at 137 km (mark S on UTM 48N)']],
+[function(){S("d0a",1.36666666666667); S("d0o",103.833333333333); S("dk",1); S("dfe",28001.642); S("dfn",38744.572);}, 'The definition of Example 12.2 as written: it reproduces SVY21 at mark S to the millimetre.', ['Mark S with this definition: N, E', 'Difference ΔN, ΔE']],
+[function(){S("d0a",1.3667); S("d0o",103.833333333333); S("dk",1); S("dfe",28001.642); S("dfn",38744.572);}, 'The origin retyped as 1.3667°: it moves 0.12″ north, and every northing changes by 3.7 m (Example 12.2).', ['Mark S with this definition: N, E', 'Difference ΔN, ΔE']]];
 
 </script>
 </body>

@@ -47,21 +47,29 @@ footer{max-width:1100px;margin:10px auto 30px;padding:0 16px;font-size:12px;colo
 <body>
 <header><div class="num">App 4 · Chapter 4</div><h1>GNSS height to reduced level</h1><p>H = h − N. Fit a local geoid surface to benchmarks with both a GNSS height and a levelled height, then use it at a new point.</p></header>
 <main>
-<div class="card exbar"><h2>Worked examples in the book</h2><div class="exb"><button class="ghost" onclick="EX(0)">Example 4.1</button> <button class="ghost" onclick="EX(1)">Example 4.3</button></div><p class="note" id="exnote">Press a button to load the values of a worked example in the book.</p></div>
+<div class="card exbar"><h2>Worked examples in the book</h2><div class="exb"><button class="ghost" onclick="EX(0)">Example 4.1</button> <button class="ghost" onclick="EX(1)">Example 4.2</button> <button class="ghost" onclick="EX(2)">Example 4.3</button></div><p class="note" id="exnote">Press a button to load the values of a worked example in the book.</p></div>
 <div class="grid">
  <div class="card"><h2>Benchmarks used (illustrative)</h2><div id="bms"></div>
   <h2 style="margin-top:14px">New point</h2>
   <label>SVY21 northing, easting (m)</label><div class="row"><input id="pn" type="number" step="any"><input id="pe" type="number" step="any"></div>
   <label>GNSS ellipsoidal height h (m)</label><input id="ph" type="number" step="any">
   <label>Constant undulation for comparison (m)</label><input id="nc" type="number" step="any" value="9.7">
-  <button onclick="setP(37000,28500,27.818)">Point in the book</button> <button class="ghost" onclick="setP(48266.651,20890.909,12.014)">Bridge mark S</button>
+  <button onclick="setP(37000,28500,27.818)">Point in the book</button> <button class="ghost" onclick="setP(48266.651,20890.909,12.014)">Mark S</button>
  </div>
  <div>
   <div class="card"><h2>Results</h2><table class="res" id="out"></table><p class="note" id="warn"></p></div>
   <div class="card" style="margin-top:12px"><h2>Plan: benchmarks and residuals (mm)</h2><svg id="fig"></svg></div>
  </div>
 </div>
-<div class="try"><b>Try this.</b> Untick BM5, the benchmark with the largest residual, and watch the fit improve. Then press <i>Bridge mark S</i>: the point lies outside the benchmarks, the surface is being extrapolated, and the app warns you. A surveyor should add benchmarks near the work, or use the official geoid model, rather than trust an extrapolated plane.</div>
+<div class="grid" style="margin-top:14px">
+ <div class="card"><h2>Local correction from two benchmarks</h2>
+  <label>Benchmark A: derived and published reduced level (m)</label><div class="row"><input id="bd1" type="number" step="any" value="12.447"><input id="bp1" type="number" step="any" value="12.431"></div>
+  <label>Benchmark B: derived and published reduced level (m)</label><div class="row"><input id="bd2" type="number" step="any" value="9.862"><input id="bp2" type="number" step="any" value="9.850"></div>
+  <label>New point: derived reduced level (m)</label><input id="bn" type="number" step="any" value="15.305">
+ </div>
+ <div class="card"><h2>Correction</h2><table class="res" id="out42"></table></div>
+</div>
+<div class="try"><b>Try this.</b> Untick BM5, the benchmark with the largest residual, and watch the fit improve. Then press <i>Mark S</i>: the point lies outside the benchmarks, the surface is being extrapolated, and the app warns you. A surveyor should add benchmarks near the work, or use the official geoid model, rather than trust an extrapolated plane.</div>
 
 </main>
 <footer>Companion app to <i>Datums, Coordinate Systems and Map Projections</i> by Yam Khoon Tor. &copy; 2026 Yam Khoon Tor. A teaching aid, provided without warranty: check results independently before use in survey work. The running-case points are illustrative.</footer>
@@ -398,8 +406,14 @@ function calc(){
   svg.appendChild(svgEl("text", { x: W - 140, y: H - 20, "font-size": 12 }, "5 km"));
 }
 setP(37000, 28500, 27.818); wire(calc);
+const sgn = (v, d = 3) => (v >= 0 ? "+" : "−") + F(Math.abs(v), d);
+function c42(){ const d1 = val("bd1") - val("bp1"), d2 = val("bd2") - val("bp2"), m = (d1 + d2) / 2;
+  $("out42").innerHTML = rows([["Difference at A", sgn(d1) + " m"], ["Difference at B", sgn(d2) + " m"], ["Mean difference", sgn(m) + " m"],
+    ["Spread", F(Math.abs(d1 - d2)) + " m"], ["Corrected reduced level", F(val("bn") - m) + " m"]]); }
+document.addEventListener("input", c42); c42();
 
 const EXS = [[function(){setP(37000,28500,37.412); S("nc",9.656);}, 'Read the <b>With constant N</b> row: h = 37.412 m and N = 9.656 m give H = 27.756 m (Example 4.1). Standard deviation √(0.020² + 0.020²) = 0.028 m.', ['With constant N…']],
+[function(){S("bd1",12.447); S("bp1",12.431); S("bd2",9.862); S("bp2",9.850); S("bn",15.305);}, 'Two benchmarks of Example 4.2: mean difference +0.014 m, spread 0.004 m, corrected level 15.291 m. See the card <b>Local correction from two benchmarks</b>.', ['Difference at A', 'Difference at B', 'Mean difference', 'Spread', 'Corrected reduced level']],
 [function(){document.querySelectorAll("#bms input[type=checkbox]").forEach(c => c.checked = true); setP(37000,28500,27.818);}, 'All eight benchmarks of Table 4.2 ticked; the new point at N 37 000, E 28 500, h 27.818 m. Compare the plane coefficients, the standard deviation of fit and H with Example 4.3. Example 4.2 is a hand computation from two benchmarks.', ['c0', 'c1', 'c2', 'Standard deviation of fit', 'Undulation N', 'Reduced level H = h − N']]];
 
 </script>
