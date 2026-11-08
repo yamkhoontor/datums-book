@@ -54,6 +54,7 @@ footer{max-width:1100px;margin:10px auto 30px;padding:0 16px;font-size:12px;colo
   <label>SVY21 northing, easting (m)</label><div class="row"><input id="pn" type="number" step="any"><input id="pe" type="number" step="any"></div>
   <label>GNSS ellipsoidal height h (m)</label><input id="ph" type="number" step="any">
   <label>Constant undulation for comparison (m)</label><input id="nc" type="number" step="any" value="9.7">
+  <label>Standard deviations of h and of that N (m)</label><div class="row"><input id="sh" type="number" step="any" value="0.020"><input id="sn" type="number" step="any" value="0.020"></div>
   <button onclick="setP(37000,28500,27.818)">Point in the book</button> <button class="ghost" onclick="setP(48266.651,20890.909,12.014)">Mark S</button>
  </div>
  <div>
@@ -386,7 +387,7 @@ function calc(){
   const Nu = x[0] + x[1] * (n - N0) / 1000 + x[2] * (e - E0) / 1000;
   $("out").innerHTML = rows([["Fitted surface N = c0 + c1·Δn + c2·Δe (Δ in km)"], ["c0", x[0].toFixed(4) + " m"], ["c1", x[1].toFixed(5) + " m/km"], ["c2", x[2].toFixed(5) + " m/km"],
     ["Standard deviation of fit", isNaN(r.s0) ? "—" : (r.s0 * 1000).toFixed(1) + " mm"], ["At the new point"], ["Undulation N", Nu.toFixed(3) + " m"],
-    ["Reduced level H = h − N", (h - Nu).toFixed(3) + " m"], ["With constant N = " + val("nc"), (h - val("nc")).toFixed(3) + " m"],
+    ["Reduced level H = h − N", (h - Nu).toFixed(3) + " m"], ["With constant N = " + val("nc"), (h - val("nc")).toFixed(3) + " m"], ["Standard deviation of that H", Math.hypot(val("sh"), val("sn")).toFixed(3) + " m"],
     ["Difference", ((val("nc") - Nu) * 1000).toFixed(0) + " mm"]]);
   const ns = used.map(b => b[1]), es = used.map(b => b[2]);
   const inside = n >= Math.min(...ns) && n <= Math.max(...ns) && e >= Math.min(...es) && e <= Math.max(...es);
@@ -412,7 +413,7 @@ function c42(){ const d1 = val("bd1") - val("bp1"), d2 = val("bd2") - val("bp2")
     ["Spread", F(Math.abs(d1 - d2)) + " m"], ["Corrected reduced level", F(val("bn") - m) + " m"]]); }
 document.addEventListener("input", c42); c42();
 
-const EXS = [[function(){setP(37000,28500,37.412); S("nc",9.656);}, 'Read the <b>With constant N</b> row: h = 37.412 m and N = 9.656 m give H = 27.756 m (Example 4.1). Standard deviation √(0.020² + 0.020²) = 0.028 m.', ['With constant N…']],
+const EXS = [[function(){setP(37000,28500,37.412); S("nc",9.656); S("sh",0.020); S("sn",0.020);}, 'h = 37.412 m (σ 0.020 m) and N = 9.656 m (σ 0.020 m) give H = 27.756 m with σ_H = 0.028 m, as in Example 4.1.', ['With constant N…', 'Standard deviation of that H']],
 [function(){S("bd1",12.447); S("bp1",12.431); S("bd2",9.862); S("bp2",9.850); S("bn",15.305);}, 'Two benchmarks of Example 4.2: mean difference +0.014 m, spread 0.004 m, corrected level 15.291 m. See the card <b>Local correction from two benchmarks</b>.', ['Difference at A', 'Difference at B', 'Mean difference', 'Spread', 'Corrected reduced level']],
 [function(){document.querySelectorAll("#bms input[type=checkbox]").forEach(c => c.checked = true); setP(37000,28500,27.818);}, 'All eight benchmarks of Table 4.2 ticked; the new point at N 37 000, E 28 500, h 27.818 m. Compare the plane coefficients, the standard deviation of fit and H with Example 4.3. Example 4.2 is a hand computation from two benchmarks.', ['c0', 'c1', 'c2', 'Standard deviation of fit', 'Undulation N', 'Reduced level H = h − N']]];
 

@@ -61,6 +61,12 @@ footer{max-width:1100px;margin:10px auto 30px;padding:0 16px;font-size:12px;colo
   <div class="card" style="margin-top:12px"><h2>Height difference from ITRF2020 over time (mm)</h2><svg id="fig"></svg></div>
  </div>
 </div>
+<div class="grid" style="margin-top:14px">
+ <div class="card"><h2>Three "WGS84" sets for mark S</h2>
+  <p class="note">Set A: RTK from SiReNT, really SVY21. Set B: PPP, really ITRF2020 at 2026.2 (the campaign position of Example 11.2). Set C: a hand-held navigation fix, good to a few metres.</p>
+ </div>
+ <div class="card"><h2>Sets A and B compared</h2><table class="res" id="out61"></table></div>
+</div>
 <div class="try"><b>Try this.</b> The realisations since ITRF2005 agree to a few millimetres: for most survey work they are interchangeable at the same epoch. ITRF2000 differs by several centimetres, mostly in height, and the difference grows each year. Remember that these are differences of <i>frame</i> only. The movement of the ground itself, about 30 mm a year here, is the subject of App 7.</div>
 
 </main>
@@ -385,8 +391,14 @@ function calc(){
   $("fig").appendChild(svgEl("line", { x1: c.X(t), x2: c.X(t), y1: 18, y2: 258, stroke: "var(--accent)", "stroke-dasharray": "4 4" }));
 }
 reset(); wire(calc);
+const sgn = (v, d = 3) => (v >= 0 ? "+" : "−") + F(Math.abs(v), d);
+function c61(){ const A = [CASE.S.lat, CASE.S.lon], B = GEO.ecefToGeodetic(-1517613.755, 6192871.663, 160623.288, ...WGS), r = GEO.radii(A[0], ...WGS);
+  const de = (B[1] - A[1]) * GEO.D2R * r.nu * Math.cos(A[0] * GEO.D2R), dn = (B[0] - A[0]) * GEO.D2R * r.M;
+  $("out61").innerHTML = rows([["Set A, SVY21", GEO.degToDms(A[0], 5) + ", " + GEO.degToDms(A[1], 5)], ["Set B, ITRF2020 at 2026.2", GEO.degToDms(B[0], 5) + ", " + GEO.degToDms(B[1], 5)],
+    ["B minus A, east, north", sgn(de) + ", " + sgn(dn) + " m"], ["Of which the choice of ITRF realisation", "a few centimetres (the table above)"], ["Set C", "agrees with both within its few metres"]]); }
+c61();
 
-const EXS = [[function(){reset();}, 'Mark S at 2026.2. Sets A (SVY21) and B (PPP, ITRF2020) of Example 6.1 differ by 0.92 m east and 0.25 m north; this app shows that only a few centimetres of that comes from the choice of ITRF realisation. The rest is plate motion: see Apps 7 and 8.', ['ITRF2014', 'ITRF2008', 'ITRF2005']]];
+const EXS = [[function(){reset();}, 'Mark S as three "WGS84" sets (Example 6.1): A and B differ by about 0.92 m east and 0.25 m south. The difference is plate motion since SVY21 was fixed; the realisations of the ITRF differ by only a few centimetres, as the upper table shows.', ['Set A, SVY21', 'Set B, ITRF2020 at 2026.2', 'B minus A, east, north']]];
 
 </script>
 </body>

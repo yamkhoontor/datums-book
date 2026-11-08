@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Old datum, new datum: where is the 1970s sea wall?</title>
+<title>Old datum, new datum: Kertau 1968 and the modern datum</title>
 <style>
 :root{--ink:#16202b;--quiet:#55606d;--line:#c9d3de;--pale:#eef3f8;--paper:#ffffff;--accent:#1f5fa8;--dark:#1f3b5c;--warn:#b42318;--ok:#1a7f37;--orange:#c2410c}
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--ink:#e6edf3;--quiet:#9aa7b4;--line:#33414f;--pale:#1b2836;--paper:#0f1720;--accent:#6ea8ff;--dark:#9cc3f0;--warn:#ff7b72;--ok:#56d364;--orange:#f0883e}}
@@ -45,19 +45,26 @@ footer{max-width:1100px;margin:10px auto 30px;padding:0 16px;font-size:12px;colo
 </style>
 </head>
 <body>
-<header><div class="num">App 5 · Chapter 5</div><h1>Old datum, new datum: where is the 1970s sea wall?</h1><p>A position read from an old Kertau-based plan, moved onto the modern geocentric datum by two published transformations.</p></header>
+<header><div class="num">App 5 · Chapter 5</div><h1>Old datum, new datum: Kertau 1968 and the modern datum</h1><p>A position moved between the modern geocentric datum and the old Kertau 1968 datum, in either direction, by two published transformations.</p></header>
 <main>
 <div class="card exbar"><h2>Worked examples in the book</h2><div class="exb"><button class="ghost" onclick="EX(0)">Example 5.1</button> <button class="ghost" onclick="EX(1)">Example 5.2</button></div><p class="note" id="exnote">Press a button to load the values of a worked example in the book.</p></div>
 <div class="grid">
- <div class="card"><h2>Position on the old Kertau 1968 datum</h2>
+ <div class="card"><h2>Input</h2>
+  <label>Direction</label><select id="dir"><option value="toK" selected>Modern datum (WGS84 / GRS80) to Kertau 1968</option><option value="toM">Kertau 1968 to modern datum</option></select>
+  <label id="ilab">Position on the modern datum</label>
   <label>Latitude N</label><div class="dms"><input id="latd" type="number"><input id="latm" type="number"><input id="lats" type="number" step="any"></div>
   <label>Longitude E</label><div class="dms"><input id="lond" type="number"><input id="lonm" type="number"><input id="lons" type="number" step="any"></div>
-  <label>Height on Kertau h (m) (poorly known on a classical datum)</label><input id="h" type="number" step="any" value="5">
-  <button onclick="reset()">Sea wall near S</button>
-  <p class="note">Method A: three translations, Kertau 1968 to WGS84 (DMA, EPSG 1158), stated accuracy about 10 m.<br>Method B: JUPEM's six-parameter set between WGS84 (PMGSN94) and Kertau (MRT68), applied in reverse.</p>
+  <label>Ellipsoidal height h (m)</label><input id="h" type="number" step="any" value="12.014">
+  <button onclick="reset()">Mark S</button> <button class="ghost" onclick="seawall()">Sea wall on an old plan</button>
+  <h2 style="margin-top:14px">Published result, to compare (optional)</h2>
+  <label><input type="checkbox" id="usep"> Compare Method A with these values</label>
+  <label>Latitude N</label><div class="dms"><input id="platd" type="number"><input id="platm" type="number"><input id="plats" type="number" step="any"></div>
+  <label>Longitude E</label><div class="dms"><input id="plond" type="number"><input id="plonm" type="number"><input id="plons" type="number" step="any"></div>
+  <label>h (m)</label><input id="ph" type="number" step="any">
+  <p class="note">Method A: the three translations of Table 5.2 (Kertau 1968 to WGS84: ΔX −11, ΔY +851, ΔZ +5 m; reversed signs for WGS84 to Kertau), stated accuracy about 10 m.<br>Method B: JUPEM's six-parameter set between WGS84 (PMGSN94) and Kertau (MRT68), shown for comparison.</p>
  </div>
  <div>
-  <div class="card"><h2>On the modern datum</h2><table class="res" id="out"></table></div>
+  <div class="card"><h2 id="olab">On the Kertau 1968 datum</h2><table class="res" id="out"></table></div>
   <div class="card" style="margin-top:12px"><h2>The shift, to scale</h2><svg id="fig"></svg></div>
  </div>
 </div>
@@ -365,40 +372,58 @@ function svgEl(tag, attrs, text){ const e = document.createElementNS("http://www
 function arrowDefs(svg, id, colour){ const d = svgEl("defs", {}); const m = svgEl("marker", {id, viewBox:"0 0 10 10", refX:9, refY:5, markerWidth:7, markerHeight:7, orient:"auto-start-reverse"});
   m.appendChild(svgEl("path", {d:"M0 0L10 5L0 10z", fill:colour})); d.appendChild(m); svg.appendChild(d); }
 const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
-const T3 = [-11, 851, 5];
-const T6 = [379.776, -775.384, 86.609], R6 = [-2.59674, -2.10213, 12.11377];
-function reset(){ setDms("lat", CASE.S.lat + 0.1792 / 3600 * 1.0); setDms("lon", CASE.S.lon + 6.2449 / 3600); calc(); }
+const T3 = [-11, 851, 5];                      // Kertau to WGS84
+const T6 = [379.776, -775.384, 86.609], R6 = [-2.59674, -2.10213, 12.11377];   // X_K = T + R X_W
+function reset(){ $("dir").value = "toK"; setDms("lat", CASE.S.lat); setDms("lon", CASE.S.lon); $("h").value = CASE.S.h; $("usep").checked = false; calc(); }
+function seawall(){ $("dir").value = "toM"; setDms("lat", CASE.S.lat + 0.2196 / 3600); setDms("lon", CASE.S.lon + 6.2076 / 3600); $("h").value = 5; $("usep").checked = false; calc(); }
 function inv6(X){   // invert X_K = T + R X_W by iteration
   let W = X.map((v, i) => v - T6[i]);
   for (let k = 0; k < 4; k++) { const f = GEO.helmert7(W, T6, R6, 0); W = W.map((v, i) => v + (X[i] - f[i])); }
   return W;
 }
+const sgn = (v, d = 3) => (v >= 0 ? "+" : "−") + F(Math.abs(v), d);
 function calc(){
-  const lat = dmsIn("lat"), lon = dmsIn("lon"), h = val("h"), XK = GEO.geodeticToEcef(lat, lon, h, ...EVE);
-  const A = GEO.ecefToGeodetic(...XK.map((v, i) => v + T3[i]), ...WGS);
-  const B = GEO.ecefToGeodetic(...inv6(XK), ...WGS);
+  const toK = $("dir").value === "toK", src = toK ? WGS : EVE, tgt = toK ? EVE : WGS;
+  $("ilab").textContent = toK ? "Position on the modern datum (WGS84 ellipsoid)" : "Position on the old Kertau 1968 datum (Modified Everest)";
+  $("olab").textContent = toK ? "On the Kertau 1968 datum" : "On the modern datum";
+  const lat = dmsIn("lat"), lon = dmsIn("lon"), h = val("h"), X1 = GEO.geodeticToEcef(lat, lon, h, ...src);
+  const X2 = X1.map((v, i) => v + (toK ? -T3[i] : T3[i])), A = GEO.ecefToGeodetic(...X2, ...tgt);
+  const B = GEO.ecefToGeodetic(...(toK ? GEO.helmert7(X1, T6, R6, 0) : inv6(X1)), ...tgt);
   const r = GEO.radii(lat, ...WGS), cl = Math.cos(lat * GEO.D2R);
   const sh = P => [(P[1] - lon) * GEO.D2R * r.nu * cl, (P[0] - lat) * GEO.D2R * r.M];
-  const sa = sh(A), sb = sh(B);
-  $("out").innerHTML = rows([["Method A, three translations"], ["Latitude", GEO.degToDms(A[0], 4)], ["Longitude", GEO.degToDms(A[1], 4)], ["Shift east, north", `${sa[0].toFixed(1)}, ${sa[1].toFixed(1)} m`],
-    ["Method B, JUPEM six parameters"], ["Latitude", GEO.degToDms(B[0], 4)], ["Longitude", GEO.degToDms(B[1], 4)], ["Shift east, north", `${sb[0].toFixed(1)}, ${sb[1].toFixed(1)} m`],
-    ["A minus B", `${(sa[0] - sb[0]).toFixed(1)} m east, ${(sa[1] - sb[1]).toFixed(1)} m north`], ["Height change, A", (A[2] - h).toFixed(1) + " m"], ["Height change, B", (B[2] - h).toFixed(1) + " m"]]);
+  const sa = sh(A), sb = sh(B), sec = v => (v >= 0 ? "+" : "−") + Math.abs(v * 3600).toFixed(4) + "″";
+  const list = [["Method A, three translations"],
+    ["Step 1: Cartesian on the source ellipsoid"], ["X", F(X1[0])], ["Y", F(X1[1])], ["Z", F(X1[2])],
+    ["Step 2: translations applied"], ["X ", F(X2[0])], ["Y ", F(X2[1])], ["Z ", F(X2[2])],
+    ["Step 3: geodetic on the target ellipsoid"], ["Latitude", GEO.degToDms(A[0], 4)], ["Longitude", GEO.degToDms(A[1], 4)], ["h", F(A[2]) + " m"],
+    ["The shift, target minus source"], ["Latitude", sec(A[0] - lat) + ", " + sgn(sa[1], 1) + " m north"], ["Longitude", sec(A[1] - lon) + ", " + sgn(sa[0], 1) + " m east"],
+    ["Total", F(Math.hypot(...sa), 1) + " m"],
+    ["Method B, JUPEM six parameters (PMGSN94)"], ["Latitude ", GEO.degToDms(B[0], 4)], ["Longitude ", GEO.degToDms(B[1], 4)], ["A minus B", `${(sa[0] - sb[0]).toFixed(1)} m east, ${(sa[1] - sb[1]).toFixed(1)} m north`]];
+  if ($("usep").checked) {
+    const pl = dmsIn("plat"), po = dmsIn("plon"), ph = val("ph");
+    list.push(["Method A minus the published result"], ["φ", GEO.degToDms(A[0], 4) + " − " + GEO.degToDms(pl, 5) + " = " + F(Math.abs(A[0] - pl) * GEO.D2R * r.M, 1) + " m"],
+      ["λ", GEO.degToDms(A[1], 4) + " − " + GEO.degToDms(po, 5) + " = " + F(Math.abs(A[1] - po) * GEO.D2R * r.nu * cl, 1) + " m"],
+      ["h ", F(A[2]) + " − " + F(ph) + " = " + F(Math.abs(A[2] - ph), 1) + " m"]);
+  }
+  $("out").innerHTML = rows(list);
   const svg = $("fig"), W = 600, H = 300; svg.innerHTML = ""; svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
   arrowDefs(svg, "aa", "var(--accent)"); arrowDefs(svg, "ab", "var(--orange)");
-  const x0 = W - 80, y0 = 150, k = 2.2;     // pixels per metre
+  const d = toK ? 1 : -1, x0 = toK ? 80 : W - 80, y0 = 150, k = 2.2;     // pixels per metre
   svg.appendChild(svgEl("rect", { x: 0, y: 0, width: W, height: H, fill: "var(--pale)" }));
-  dot(svg, [x0, y0], 6, "var(--ink)", "position as printed on the old plan", -250, -14, 13);
+  dot(svg, [x0, y0], 6, "var(--ink)", toK ? "position on the modern datum" : "position as printed on the old plan", toK ? 10 : -250, -14, 13);
   svg.appendChild(svgEl("line", { x1: x0, y1: y0, x2: x0 + sa[0] * k, y2: y0 - sa[1] * k, stroke: "var(--accent)", "stroke-width": 2.5, "marker-end": "url(#aa)" }));
   svg.appendChild(svgEl("line", { x1: x0, y1: y0, x2: x0 + sb[0] * k, y2: y0 - sb[1] * k, stroke: "var(--orange)", "stroke-width": 2, "stroke-dasharray": "6 4", "marker-end": "url(#ab)" }));
-  svg.appendChild(svgEl("text", { x: Math.max(10, x0 + sa[0] * k - 10), y: y0 - sa[1] * k + 30, "font-size": 13, fill: "var(--accent)" }, `true position on the modern datum, ${Math.hypot(...sa).toFixed(0)} m away`));
+  const tx = Math.min(W - 330, Math.max(10, x0 + sa[0] * k - (toK ? 300 : 10)));
+  svg.appendChild(svgEl("text", { x: tx, y: y0 - sa[1] * k + 30, "font-size": 13, fill: "var(--accent)" },
+    (toK ? "the same coordinates on Kertau, " : "true position on the modern datum, ") + Math.hypot(...sa).toFixed(0) + " m away"));
   svg.appendChild(svgEl("line", { x1: 20, x2: 20 + 50 * k, y1: H - 20, y2: H - 20, stroke: "var(--ink)", "stroke-width": 3 }));
   svg.appendChild(svgEl("text", { x: 20, y: H - 28, "font-size": 12 }, "50 m"));
   svg.appendChild(svgEl("text", { x: 20, y: 24, "font-size": 12, fill: "var(--quiet)" }, "north up; blue = method A, orange dashed = method B"));
 }
 reset(); wire(calc);
 
-const EXS = [[function(){Dm("lat",1,27,10.2276); Dm("lon",103,46,16.1777); S("h",15.814);}, 'The app works from Kertau to the modern datum, so it runs Example 5.1 in reverse: S on Kertau (1° 27′ 10.2276″, 103° 46′ 16.1777″, h 15.814 m) returns by <b>Method A</b> to S on the modern datum, 1° 27′ 10.0080″, 103° 46′ 09.9701″. The shift is 192 m, almost all east.', ['Method A > Latitude', 'Method A > Longitude', 'Method A > Shift east, north', 'Height change, A']],
-[function(){Dm("lat",1,51,27.38567); Dm("lon",102,56,37.52660); S("h",2.338);}, "JUPEM's MRT68 result for its test point. <b>Method A</b>, the three-parameter set, returns 1° 51′ 27.0567″, 102° 56′ 31.7058″: within 2 m of the GDM2000 values given in Example 5.2 (1° 51′ 27.04635″, 102° 56′ 31.75616″). <b>Method B</b>, JUPEM's own parameters, returns their PMGSN94 test point of Example 9.1 to the millimetre.", ['Method A > Latitude', 'Method A > Longitude', 'Method B > Latitude', 'Method B > Longitude']]];
+const EXS = [[function(){reset();}, 'S on the modern datum to Kertau 1968, as in Example 5.1: Step 1 X −1 517 612.859, Y 6 192 871.891, Z 160 623.535; Step 2 X −1 517 601.859, Y 6 192 020.891, Z 160 618.535; Step 3 φ 1° 27′ 10.2276″, λ 103° 46′ 16.1777″, h 15.814 m. The shift is +0.2196″ (6.7 m north) and +6.2076″ (191.9 m east), 192.0 m in all.', ['Step 1: Cartesian on the source ellipsoid > X', 'Step 1: Cartesian on the source ellipsoid > Y', 'Step 1: Cartesian on the source ellipsoid > Z', 'Step 2 > X', 'Step 2 > Y', 'Step 2 > Z', 'Step 3 > Latitude', 'Step 3 > Longitude', 'Step 3 > h', 'The shift > Latitude', 'The shift > Longitude', 'The shift > Total']],
+[function(){$("dir").value = "toK"; Dm("lat",1,51,27.04635); Dm("lon",102,56,31.75616); S("h",7.724); $("usep").checked = true; Dm("plat",1,51,27.38567); Dm("plon",102,56,37.52660); S("ph",2.338);}, "JUPEM's test point from GDM2000 to MRT68 by the three-parameter set, as in Example 5.2: φ 1° 51′ 27.3754″, λ 102° 56′ 37.5770″, h 8.901 m, against JUPEM's 1° 51′ 27.38567″, 102° 56′ 37.52660″, 2.338 m: differences 0.3 m, 1.6 m and 6.6 m.", ['Step 3 > Latitude', 'Step 3 > Longitude', 'Step 3 > h', 'Method A minus the published result > φ', 'Method A minus the published result > λ', 'Method A minus the published result > h']]];
 
 </script>
 </body>

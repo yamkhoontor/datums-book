@@ -382,7 +382,7 @@ function calc(){
   const r = GEO.lsq(A, L), [a, b, c, d] = r.x, sc = Math.hypot(a, b), th = Math.atan2(b, a) * GEO.R2D;
   const tf = (e, n) => [a * (e - e0) - b * (n - n0) + c, b * (e - e0) + a * (n - n0) + d];
   const kk = tf(K1[1], K1[2]);
-  const list = [["Scale", sc.toFixed(8) + `  (${((sc - 1) * 1e6).toFixed(1)} ppm)`], ["Rotation", th.toFixed(5) + "°"], ["Shift c, d", F(c) + ", " + F(d)],
+  const list = [["Scale", sc.toFixed(8) + `  (${((sc - 1) * 1e6).toFixed(1)} ppm)`], ["Rotation", GEO.degToDms(th, 2)], ["Shift c, d", F(c) + ", " + F(d)],
     ["s0", isNaN(r.s0) ? "— (no redundancy)" : (r.s0 * 1000).toFixed(1) + " mm"], ["Residuals vE, vN (mm)"]];
   pts.forEach((p, i) => list.push([p[0], (r.v[2 * i] * 1000).toFixed(1) + ", " + (r.v[2 * i + 1] * 1000).toFixed(1)]));
   list.push(["Check point K1, error dE, dN", ((kk[0] - K1[3]) * 1000).toFixed(1) + ", " + ((kk[1] - K1[4]) * 1000).toFixed(1) + " mm"]);

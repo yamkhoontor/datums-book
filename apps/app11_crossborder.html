@@ -391,7 +391,7 @@ function calc(){
   $("out").innerHTML = rows([["Singapore: SVY21"], ["Latitude, longitude", GEO.degToDms(S[0], 5) + ", " + GEO.degToDms(S[1], 5)], ["SVY21 grid N, E", F(sN) + ", " + F(sE)],
     ["Malaysia: GDM2000"], ["Latitude, longitude", GEO.degToDms(M[0], 5) + ", " + GEO.degToDms(M[1], 5)], ["Johor Cassini N, E", F(cN) + ", " + F(cE)], ["Peninsula RSO N, E", F(rN) + ", " + F(rE)],
     ["Indonesia: SRGI2013 (estimate, plate model)"], ["Latitude, longitude", GEO.degToDms(I[0], 5) + ", " + GEO.degToDms(I[1], 5)], ["UTM 48N N, E", F(u.N) + ", " + F(u.E)],
-    ["Differences at this mark (east, north, mm)"], ["GDM2000 minus SVY21", mm(S, M).join(", ")], ["SRGI2013 minus ITRF2020 at campaign", mm([lat, lon], I).join(", ")]]);
+    ["Differences at this mark (east, north, mm)"], ["GDM2000 minus SVY21", mm(S, M).join(", ")], ["SRGI2013 minus ITRF2020 at campaign", mm([lat, lon], I).join(", ")]].concat(route1(X, lat, lon, t, v)));
   const svg = $("map"), m = makeMap(svg, [1.0, 1.56, 103.55, 104.25], 600, 480);
   svg.appendChild(svgEl("text", { x: 40, y: 40, "font-size": 14 }, "MALAYSIA (Johor): GDM2000"));
   svg.appendChild(svgEl("text", { x: 120, y: 230, "font-size": 14 }, "SINGAPORE: SVY21"));
@@ -408,8 +408,17 @@ function c114(){ const p1 = [val("l1a"), val("l1o")], p2 = [val("l2a"), val("l2o
       ["bearing minus azimuth", ((((t - az) + 540) % 360 - 180) * 3600).toFixed(1) + "″"]); }
   $("out114").innerHTML = rows(list); }
 document.addEventListener("input", c114); c114();
+function route1(X, lat, lon, t, v){
+  // Route 1: ITRF2020 at t to ITRF2000 (frame change at t), then steady plate motion back to 2000.0: the original GDM2000
+  const X0 = GEO.helmert14(X, [-0.2, 0.8, -34.2, 2.25, 0, 0, 0], [0.1, 0.0, -1.7, 0.11, 0, 0, 0], 2015, t);
+  const Xg = X0.map((c, i) => c + v.V[i] * (2000.0 - t)), en = P => GEO.ecefToEnu(...P.map((c, i) => c - X[i]), lat, lon);
+  const tot = en(Xg), fr = en(X0), pl = tot.map((c, i) => c - fr[i]), g = GEO.ecefToGeodetic(...Xg, ...GRS);
+  const m3 = a => a.map(c => (c >= 0 ? "+" : "−") + Math.abs(c).toFixed(3)).join(", ") + " m";
+  return [["Route 1 estimate: GDM2000 (ITRF2000 at 2000.0), steady motion"], ["Latitude, longitude ", GEO.degToDms(g[0], 5) + ", " + GEO.degToDms(g[1], 5)],
+    ["GDM2000 minus ITRF2020, east, north, up", m3(tot)], ["of which plate motion", m3(pl)], ["of which frame change", m3(fr)]];
+}
 
-const EXS = [[function(){load("J");}, 'J in ITRF2020 at 2026.2. Example 11.1 estimates GDM2000 minus ITRF2020 here from plate motion and frame change as about 0.755 m west, 0.145 m north; App 7 gives the plate part. This app uses the shifts measured in the campaign (Example 11.2).', ['Malaysia > Latitude, longitude', 'GDM2000 minus SVY21']],
+const EXS = [[function(){load("J");}, 'J in ITRF2020 at 2026.2, as in Example 11.1. The <b>Route 1 estimate</b> rows give GDM2000 minus ITRF2020: about 0.755 m west, 0.145 m north and 0.021 m up, of which plate motion 0.754 m west and 0.198 m north, and frame change 1 mm west, 53 mm south and 21 mm up.', ['Route 1 > Latitude, longitude', 'GDM2000 minus ITRF2020, east, north, up', 'of which plate motion', 'of which frame change']],
 [function(){load("S");}, 'S from the common campaign. The <b>SVY21</b> and <b>GDM2000</b> rows reproduce Steps 3 and 4 of Example 11.2: SVY21 grid 48 266.651 N, 20 890.909 E; Johor Cassini −65 213.712, 23 188.429; RSO 160 657.488, 641 448.684.', ['Singapore > Latitude, longitude', 'SVY21 grid N, E', 'Malaysia > Latitude, longitude', 'Johor Cassini N, E', 'Peninsula RSO N, E']],
 [function(){load("B");}, 'B on Batam, ITRF2020 at 2026.2. The <b>SRGI2013</b> rows are the estimate of Example 11.3, by frame change and plate motion back to 2012.0, and its UTM 48N grid coordinates.', ['Indonesia > Latitude, longitude', 'UTM 48N N, E', 'SRGI2013 minus ITRF2020 at campaign']],
 [function(){S("l1a",1.2); S("l1o",103.9); S("l2a",1.1); S("l2o",104.05);}, 'P₁ (1° 12′ N, 103° 54′ E) to P₂ (1° 06′ N, 104° 03′ E): compare the ellipsoid, SVY21 and UTM 48N rows of the card <b>One line on two grids</b> with the table of Example 11.4.', ['On the ellipsoid', 'SVY21 > distance, minus true', 'SVY21 > bearing minus azimuth', 'UTM 48N > distance, minus true', 'UTM 48N > bearing minus azimuth']]];

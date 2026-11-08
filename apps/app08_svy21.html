@@ -70,7 +70,7 @@ footer{max-width:1100px;margin:10px auto 30px;padding:0 16px;font-size:12px;colo
  <div class="card"><h2>A point on the SVY21 grid and on the former grid</h2>
   <label>Latitude N on SVY21</label><div class="dms"><input id="qlatd" type="number"><input id="qlatm" type="number"><input id="qlats" type="number" step="any"></div>
   <label>Longitude E on SVY21</label><div class="dms"><input id="qlond" type="number"><input id="qlonm" type="number"><input id="qlons" type="number" step="any"></div>
-  <label>Ellipsoidal height (m)</label><input id="qh" type="number" step="any" value="20">
+  <label>Ellipsoidal height (m)</label><input id="qh" type="number" step="any" value="0">
  </div>
  <div class="card"><h2>Grid coordinates</h2><table class="res" id="out8p"></table></div>
 </div>
@@ -429,12 +429,12 @@ setDms("qlat", 1 + 22 / 60); setDms("qlon", 103 + 50 / 60);
 document.addEventListener("input", c8p); c8p();
 
 const EXS = [[function(){reset(); S("t0",1994.0); S("t1",2026.2);}, 'Alignment at 1994.0, campaign at 2026.2. The <b>Model estimate</b> row is Example 8.2 (0.927 m east, 0.243 m south, with the sign of ITRF to SVY21); the <b>Measured shift</b> row is the 0.924 m east and 0.247 m south found at S1–S3.', ['Model estimate > east, north', 'Measured shift > east, north, up', 'Model estimate > model minus measured']],
-[function(){Dm("qlat",1,22,2.915414); Dm("qlon",103,49,31.975227);}, 'BASE7, the SVY21 datum point (Table 8.2): N 38 834.121, E 27 135.303 m, that is +89.549 m and −866.339 m from the projection origin (Example 8.1).', ['SVY21 grid > Northing', 'SVY21 grid > Easting', 'Minus the projection origin']],
-[function(){Dm("qlat",1,22,0); Dm("qlon",103,50,0);}, 'The projection origin through Kertau and the former Cassini grid: former minus SVY21 is about −1.54 m N, +2.52 m E (Table 8.6).', ['Former minus SVY21, ΔN, ΔE']],
-[function(){Dm("qlat",1,22,2.915414); Dm("qlon",103,49,31.975227);}, 'BASE7: about −1.53 m N, +2.52 m E (Table 8.6).', ['Former minus SVY21, ΔN, ΔE']],
-[function(){setDms("qlat", SIRENT.SNYU[0]); setDms("qlon", SIRENT.SNYU[1]);}, 'SNYU, in the west: about −1.40 m N, +2.53 m E (Table 8.6).', ['Former minus SVY21, ΔN, ΔE']],
-[function(){setDms("qlat", SIRENT.SLYG[0]); setDms("qlon", SIRENT.SLYG[1]);}, 'SLYG, in the east: about −1.67 m N, +2.50 m E (Table 8.6).', ['Former minus SVY21, ΔN, ΔE']],
-[function(){setDms("qlat", SIRENT.SSMK[0]); setDms("qlon", SIRENT.SSMK[1]);}, 'SSMK, in the south: about −1.48 m N, +2.39 m E (Table 8.6).', ['Former minus SVY21, ΔN, ΔE']]];
+[function(){Dm("qlat",1,22,2.915414); Dm("qlon",103,49,31.975227); S("qh",0);}, 'BASE7, the SVY21 datum point (Table 8.2): N 38 834.121, E 27 135.303 m, that is +89.549 m and −866.339 m from the projection origin (Example 8.1).', ['SVY21 grid > Northing', 'SVY21 grid > Easting', 'Minus the projection origin']],
+[function(){Dm("qlat",1,22,0); Dm("qlon",103,50,0); S("qh",0);}, 'The projection origin: former minus SVY21 −1.540 m N, +2.524 m E (Table 8.6, Example 8.3).', ['Former minus SVY21, ΔN, ΔE']],
+[function(){Dm("qlat",1,22,2.915414); Dm("qlon",103,49,31.975227); S("qh",0);}, 'BASE7: −1.533 m N, +2.525 m E (Table 8.6).', ['Former minus SVY21, ΔN, ΔE']],
+[function(){Dm("qlat",1,20,44.84810); Dm("qlon",103,40,47.91672); S("qh",0);}, 'SNYU, in the west: −1.401 m N, +2.535 m E (Table 8.6).', ['Former minus SVY21, ΔN, ΔE']],
+[function(){Dm("qlat",1,22,21.44707); Dm("qlon",103,58,18.00928); S("qh",0);}, 'SLYG, in the east: −1.667 m N, +2.504 m E (Table 8.6).', ['Former minus SVY21, ΔN, ΔE']],
+[function(){Dm("qlat",1,12,37.48752); Dm("qlon",103,46,31.49934); S("qh",0);}, 'SSMK, in the south: −1.483 m N, +2.395 m E (Table 8.6).', ['Former minus SVY21, ΔN, ΔE']]];
 
 </script>
 </body>

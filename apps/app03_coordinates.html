@@ -375,12 +375,12 @@ function calc(){
   const XA = GEO.geodeticToEcef(...A, ...WGS), XB = GEO.geodeticToEcef(...B, ...WGS), d = XB.map((v, i) => v - XA[i]);
   const [e, n, u] = GEO.ecefToEnu(...d, A[0], A[1]), s = Math.hypot(e, n, u);
   const az = (Math.atan2(e, n) * GEO.R2D + 360) % 360, zen = Math.acos(u / s) * GEO.R2D;
-  const [sg, az1] = GEO.vincenty(A[0], A[1], B[0], B[1], ...WGS);
+  const [sg, az1, az2] = GEO.vincenty(A[0], A[1], B[0], B[1], ...WGS);
   $("out").innerHTML = rows([["Station X, Y, Z"], ["X", F(XA[0])], ["Y", F(XA[1])], ["Z", F(XA[2])], ["Back to geodetic by iteration"], ["latitude", GEO.ecefToGeodetic(...XA, ...WGS)[0].toFixed(9) + "°"], ["longitude", GEO.ecefToGeodetic(...XA, ...WGS)[1].toFixed(9) + "°"], ["h", F(GEO.ecefToGeodetic(...XA, ...WGS)[2], 4) + " m"],
     ["Target minus station"], ["ΔX", F(d[0])], ["ΔY", F(d[1])], ["ΔZ", F(d[2])],
     ["Local east, north, up at the station"], ["east", F(e) + " m"], ["north", F(n) + " m"], ["up", F(u) + " m"],
-    ["Slope distance", F(s) + " m"], ["Azimuth (from e, n)", GEO.degToDms(az, 2)], ["Zenith angle", GEO.degToDms(zen, 2)],
-    ["On the ellipsoid (Vincenty)"], ["Geodesic distance", F(sg) + " m"], ["Azimuth", GEO.degToDms(az1, 2)]]);
+    ["Slope distance", F(s) + " m"], ["Horizontal distance √(e² + n²)", F(Math.hypot(e, n)) + " m"], ["Azimuth (from e, n)", GEO.degToDms(az, 2)], ["Zenith angle", GEO.degToDms(zen, 2)],
+    ["On the ellipsoid (Vincenty)"], ["Geodesic distance", F(sg) + " m"], ["Azimuth", GEO.degToDms(az1, 2)], ["Azimuth at the target", GEO.degToDms(az2, 2)]]);
   const svg = $("fig"), W = 560, H = 360; svg.innerHTML = ""; svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
   arrowDefs(svg, "a1", "var(--accent)"); arrowDefs(svg, "a2", "var(--quiet)");
   const cx = e < 0 ? W - 150 : 150, cy = n < 0 ? 70 : 290, k = 210 / Math.max(Math.abs(e), Math.abs(n), 1);
@@ -404,7 +404,7 @@ reset(); wire(calc);
 
 const EXS = [[function(){reset();}, "S on WGS84. The <b>Station X, Y, Z</b> rows are the result of Example 3.1; the <b>Target minus station</b> rows use J's X, Y, Z as computed in the same way.", ['Station X, Y, Z > X', 'Station X, Y, Z > Y', 'Station X, Y, Z > Z']],
 [function(){reset();}, "The <b>Back to geodetic</b> rows take S's X, Y, Z and iterate back to φ = 1.452 780 008°, λ = 103.769 436 142°, h = 12.014 m: the round trip of Example 3.2.", ['latitude', 'longitude', 'h']],
-[function(){reset();}, 'S to J. Compare the <b>east, north, up</b> components, slope distance, azimuth and zenith angle with Example 3.3, and the geodesic (1 457.950 m) used in Chapter 12.', ['east', 'north', 'up', 'Slope distance', 'Azimuth (from e, n)', 'Zenith angle', 'Geodesic distance']]];
+[function(){reset();}, 'S to J, as in Example 3.3: e 464.606, n 1 381.944, u 1.818 m; slope distance 1 457.955 m, horizontal 1 457.953 m; azimuth 18° 34′ 56.97″, zenith angle 89° 55′ 42.75″. On the ellipsoid: geodesic 1 457.950 m, azimuth at J 18° 34′ 57.35″.', ['east', 'north', 'up', 'Slope distance', 'Horizontal distance √(e² + n²)', 'Azimuth (from e, n)', 'Zenith angle', 'Geodesic distance', 'Azimuth', 'Azimuth at the target']]];
 
 </script>
 </body>
