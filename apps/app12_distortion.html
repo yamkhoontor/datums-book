@@ -51,13 +51,13 @@ footer{max-width:1100px;margin:10px auto 30px;padding:0 16px;font-size:12px;colo
 <div class="grid">
  <div class="card"><h2>Projection and place</h2>
   <label>Central scale factor k<sub>0</sub>: <b id="k0v"></b></label><input id="k0" type="range" min="0.9990" max="1.0002" step="0.00001" value="1">
-  <label>Distance from the central meridian to plot (km): <b id="wv"></b></label><input id="w" type="range" min="10" max="400" step="5" value="200">
+  <label>Distance from the central meridian (km): <b id="wv"></b></label><input id="w" type="range" min="10" max="400" step="5" value="200">
   <label>Latitude (degrees) for convergence</label><input id="lat" type="number" step="any" value="1.45">
   <label>Line for arc-to-chord: length north-south (km) and distance from the central meridian (km)</label><div class="row"><input id="ll" type="number" step="any" value="1.5"><input id="lx" type="number" step="any" value="-7.1"></div>
   <button onclick="set(1,60)">SVY21 (k0 = 1)</button> <button class="ghost" onclick="set(0.9996,350)">UTM (k0 = 0.9996)</button>
  </div>
  <div>
-  <div class="card"><h2>Point scale factor (ppm) against distance from the central meridian</h2><svg id="fig"></svg></div>
+  <svg id="fig" style="display:none"></svg>
   <div class="card" style="margin-top:12px"><h2>Values</h2><table class="res" id="out"></table></div>
  </div>
 </div>
@@ -70,7 +70,7 @@ footer{max-width:1100px;margin:10px auto 30px;padding:0 16px;font-size:12px;colo
   <table class="res" id="out122"></table>
  </div>
 </div>
-<div class="try"><b>Try this.</b> With k<sub>0</sub> = 1 the distortion at mark S, 7 km west of the SVY21 central meridian, is under 1 ppm: 1 mm in a kilometre. On UTM zone 48N the same site is 137 km from the central meridian and the error is about −170 ppm: 17 cm in a kilometre. Move k<sub>0</sub> and watch the two lines where the scale is exactly true move outwards. Convergence near the equator is tiny: try latitude 45° to see why it matters more elsewhere.</div>
+<div class="try"><b>Try this.</b> With k<sub>0</sub> = 1 the distortion at mark S, 7 km west of the SVY21 central meridian, is under 1 ppm: 1 mm in a kilometre. On UTM zone 48N the same site is 137 km from the central meridian and the error is about −170 ppm: 17 cm in a kilometre. Move k<sub>0</sub> and watch the distance at which the scale is exactly true move outwards. Convergence near the equator is tiny: try latitude 45° to see why it matters more elsewhere.</div>
 
 </main>
 <footer>Companion app to <i>Datums, Coordinate Systems and Map Projections</i> by Yam Khoon Tor. &copy; 2026 Yam Khoon Tor. A teaching aid, provided without warranty: check results independently before use in survey work. The running-case points are illustrative.</footer>
@@ -410,7 +410,7 @@ document.addEventListener("input", c122); c121(); c122();
 const EXS = [[function(){set(1,60);}, 'SVY21: E′ of S −7.111 km, K 1.000 000 59, +0.6 ppm, grid span 1 457.951 m, convergence −5.83″ (Example 12.1).', ['SVY21 > E′ of S', 'SVY21 > Line scale factor K', 'SVY21 > Distortion', 'SVY21 > Grid span', 'SVY21 > Convergence at S', 'Geodesic S to J', 'at 7 km (mark S, SVY21)']],
 [function(){set(0.9996,350);}, 'UTM 48N: E′ of S −136.898 km, K 0.999 831 21, −168.8 ppm, grid span 1 457.704 m, convergence −1′ 52.3″ (Example 12.1).', ['UTM 48N > E′ of S', 'UTM 48N > Line scale factor K', 'UTM 48N > Distortion', 'UTM 48N > Grid span', 'UTM 48N > Convergence at S', 'Geodesic S to J', 'at 137 km (mark S on UTM 48N)']],
 [function(){S("d0a",1.36666666666667); S("d0o",103.833333333333); S("dk",1); S("dfe",28001.642); S("dfn",38744.572);}, 'The definition of Example 12.2 as written: it reproduces SVY21 at mark S to the millimetre.', ['Mark S with this definition: N, E', 'Difference ΔN, ΔE']],
-[function(){S("d0a",1.3667); S("d0o",103.833333333333); S("dk",1); S("dfe",28001.642); S("dfn",38744.572);}, 'The origin retyped as 1.3667°: it moves 0.12″ north, and every northing changes by 3.7 m (Example 12.2).', ['Mark S with this definition: N, E', 'Difference ΔN, ΔE']]];
+[function(){S("d0a",1.3667); S("d0o",103.833333333333); S("dk",1); S("dfe",28001.642); S("dfn",38744.572);}, "The origin retyped as 1.3667°: it moves 0.12″ north, and S's northing becomes 48 262.965 m, 3.686 m less (Example 12.2).", ['Mark S with this definition: N, E', 'Difference ΔN, ΔE']]];
 
 </script>
 </body>

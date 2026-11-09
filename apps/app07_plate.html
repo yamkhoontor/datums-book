@@ -59,7 +59,7 @@ footer{max-width:1100px;margin:10px auto 30px;padding:0 16px;font-size:12px;colo
  </div>
  <div>
   <div class="card"><h2>Results</h2><table class="res" id="out"></table></div>
-  <div class="card" style="margin-top:12px"><h2>Movement of the mark in the global frame (mm)</h2><svg id="fig"></svg></div>
+  <svg id="fig" style="display:none"></svg>
  </div>
 </div>
 <div class="grid" style="margin-top:14px">
@@ -71,7 +71,7 @@ footer{max-width:1100px;margin:10px auto 30px;padding:0 16px;font-size:12px;colo
  </div>
  <div class="card"><h2>The same point in the target frame</h2><table class="res" id="out73"></table></div>
 </div>
-<div class="try"><b>Try this.</b> Set <i>From</i> to 1995 and <i>To</i> to 2026.2: the mark has moved nearly a metre in the global frame. Nothing has happened to the mark; the plate has moved, and everything on it with it. This is why a GNSS result in today's ITRF does not match coordinates fixed decades ago. Change the pole longitude to +94.2 and see the direction reverse: a sign slip here is a common error.</div>
+<div class="try"><b>Try this.</b> Set <i>From</i> to 1995 and <i>To</i> to 2026.2: the mark has moved nearly a metre in the global frame. Nothing has happened to the mark; the plate has moved, and everything on it with it. This is why a GNSS result in today's ITRF does not match coordinates fixed decades ago. Change the pole longitude to +94.2 and see the direction reverse: a sign slip here is a common error. Remember that the app assumes steady motion. Earthquakes break it, as the 2004 step shows, and only measured positions tell what really happened.</div>
 
 </main>
 <footer>Companion app to <i>Datums, Coordinate Systems and Map Projections</i> by Yam Khoon Tor. &copy; 2026 Yam Khoon Tor. A teaching aid, provided without warranty: check results independently before use in survey work. The running-case points are illustrative.</footer>
@@ -385,7 +385,7 @@ function calc(){
   const a = pos(t0, v, eq), b = pos(t1, v, eq), de = b[0] - a[0], dn = b[1] - a[1];
   const sp = Math.hypot(v.ve, v.vn) * 1000, brg = (Math.atan2(v.ve, v.vn) * GEO.R2D + 360) % 360;
   $("out").innerHTML = rows([["Velocity east", (v.ve * 1000).toFixed(1) + " mm/yr"], ["Velocity north", (v.vn * 1000).toFixed(1) + " mm/yr"],
-    ["Speed, direction", sp.toFixed(1) + " mm/yr towards " + brg.toFixed(0) + "°"], [`Movement ${t0.toFixed(1)} to ${t1.toFixed(1)}`],
+    ["Speed, direction", sp.toFixed(1) + " mm/yr towards " + brg.toFixed(1) + "°"], [`Movement ${t0.toFixed(1)} to ${t1.toFixed(1)}`],
     ["east", de.toFixed(0) + " mm"], ["north", dn.toFixed(0) + " mm"], ["total", Math.hypot(de, dn).toFixed(0) + " mm"]]);
   const ts = []; for (let y = Math.min(t0, t1) - 2; y <= Math.max(t0, t1) + 2; y += 0.05) ts.push(y);
   const c = chart($("fig"), [{ xs: ts, ys: ts.map(y => pos(y, v, eq)[0] - a[0]), colour: "var(--accent)", label: "east" },

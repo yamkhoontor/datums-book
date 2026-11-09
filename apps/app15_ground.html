@@ -61,7 +61,7 @@ footer{max-width:1100px;margin:10px auto 30px;padding:0 16px;font-size:12px;colo
  </div>
  <div>
   <div class="card"><h2>Results</h2><table class="res" id="out"></table></div>
-  <div class="card" style="margin-top:12px"><h2>Ground, ellipsoid, grid (differences exaggerated)</h2><svg id="fig"></svg></div>
+  <svg id="fig" style="display:none"></svg>
  </div>
 </div>
 <div class="grid" style="margin-top:14px">
@@ -417,8 +417,8 @@ const EXS = [[function(){ex151();}, 'A measured slope distance of 1 254.386 m re
 [function(){S("mode","grid2"); S("d",350); S("rl1",14); S("rl2",14); S("hi",0); S("ht",0); S("N",9.7); S("e1",4200); S("e2",4520); S("grid","svy");}, 'Setting out in Tuas: grid 350.000 m, works at RL 14.0 m. Ground distance 349.9989 m (Example 15.2).', ['Elevation factor…', 'Line scale factor', 'Combined', 'Ground (horizontal) distance to set out']],
 [function(){ex151(); S("e1",350704); S("e2",351917); S("grid","utm");}, "Example 15.1's line on UTM 48N: grid distance 1 253.6044 m, 167 mm short of the ground (Example 15.3).", ['Line scale factor', 'Combined', 'Grid distance', 'Grid minus ground']],
 [function(){S("mode","grid2"); S("d",500); S("rl1",120); S("rl2",120); S("hi",0); S("ht",0); S("N",9.7); S("e1",20750); S("e2",21250); S("grid","svy"); S("pce",21000); S("pcn",36500); S("pf",0.9999802); S("ppe",21300); S("ppn",36900);}, 'A high site at RL 120 m centred at E 21 000, N 36 500 (Example 15.4): EF −20.40 ppm, k +0.61 ppm, combined −19.80 ppm, 9.9 mm over 500 m. On the project grid the point E 21 300, N 36 900 becomes E 21 300.0059, N 36 900.0079, 500.0099 m from the centre.', ['Elevation factor…', 'Line scale factor', 'Combined', 'Ground minus grid', 'Project easting E_p', 'Project northing N_p', 'Distance from the centre, project grid']],
-[function(){bridge();}, 'The bridge deck from the SVY21 grid length: 1 457.957 m at deck level (Example 15.5).', ['Elevation factor…', 'Line scale factor', 'Combined', 'Ground (horizontal) distance to set out', 'Ground minus grid']],
-[function(){bridge(); const a = GEO.utm(CASE.S.lat, CASE.S.lon, ...WGS), b = GEO.utm(CASE.J.lat, CASE.J.lon, ...WGS); S("d", Math.hypot(b.N - a.N, b.E - a.E).toFixed(3)); S("e1", a.E.toFixed(3)); S("e2", b.E.toFixed(3)); S("grid","utm");}, 'The same deck from the UTM grid length, 1 457.704 m: the ground length is again 1 457.957 m, but the correction is 252 mm instead of 5.5 mm (Example 15.5).', ['Elevation factor…', 'Line scale factor', 'Combined', 'Ground (horizontal) distance to set out', 'Ground minus grid']]];
+[function(){bridge();}, 'The bridge deck from the SVY21 grid length: 1 457.9565 m at deck level (Example 15.5).', ['Elevation factor…', 'Line scale factor', 'Combined', 'Ground (horizontal) distance to set out', 'Ground minus grid']],
+[function(){bridge(); const a = GEO.utm(CASE.S.lat, CASE.S.lon, ...WGS), b = GEO.utm(CASE.J.lat, CASE.J.lon, ...WGS); S("d", Math.hypot(b.N - a.N, b.E - a.E).toFixed(3)); S("e1", a.E.toFixed(3)); S("e2", b.E.toFixed(3)); S("grid","utm");}, 'The same deck from the UTM grid length, 1 457.704 m: the ground length is again 1 457.9565 m, but the correction is 252.5 mm instead of 5.5 mm (Example 15.5).', ['Elevation factor…', 'Line scale factor', 'Combined', 'Ground (horizontal) distance to set out', 'Ground minus grid']]];
 
 </script>
 </body>
