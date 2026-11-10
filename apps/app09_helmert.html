@@ -32,8 +32,12 @@ table.res th{font:600 12px system-ui,sans-serif;color:var(--quiet)}
 table.res td.v{text-align:right;white-space:nowrap}
 .note{font-size:13.5px;color:var(--quiet)}
 .exbar{margin-bottom:14px}.exb button{margin:0 6px 6px 0}.exb button.on{background:var(--accent);color:#fff}
+button:not(.on){background:transparent;color:var(--accent)}button.on{background:var(--accent);color:#fff}
 #exnote{margin:4px 0 0}
 table.res tr.hl td{background:#ffe9a8;font-weight:700}
+table.res td.txt{font:14px/1.45 Georgia,serif;white-space:normal}table.res td.txt p{margin:4px 0}
+#exspace .grid{grid-template-columns:minmax(260px,360px) 1fr}#sgiven textarea{width:100%;font:12px ui-monospace,monospace}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) table.res tr.hl td{background:#4a3b0c}}
 table.res tr.hl td:first-child{box-shadow:inset 4px 0 0 #d4a017}
 .try{background:var(--pale);border-radius:10px;padding:10px 14px;margin-top:16px;font-size:14px}
 .try b{color:var(--dark)}
@@ -47,14 +51,16 @@ footer{max-width:1100px;margin:10px auto 30px;padding:0 16px;font-size:12px;colo
 <body>
 <header><div class="num">App 9 · Chapter 9</div><h1>The seven-parameter transformation, one parameter at a time</h1><p>See what each translation, rotation and the scale do to points across the project area, and what a wrong sign convention costs.</p></header>
 <main>
-<div class="card exbar"><h2>Worked examples in the book</h2><div class="exb"><button class="ghost" onclick="EX(0)">Example 9.1</button> <button class="ghost" onclick="EX(1)">Example 9.2, seven</button> <button class="ghost" onclick="EX(2)">Example 9.2, three</button> <button class="ghost" onclick="EX(3)">Example 9.3</button> <button class="ghost" onclick="EX(4)">Example 9.4</button></div><p class="note" id="exnote">Press a button to load the values of a worked example in the book.</p></div>
+<div class="card exbar"><h2>Worked examples in the book</h2><div class="exb"><button class="ghost" onclick="EX(0)">Example 9.1</button> <button class="ghost" onclick="EX(1)">Example 9.2, seven</button> <button class="ghost" onclick="EX(2)">Example 9.2, three</button> <button class="ghost" onclick="EX(3)">Example 9.3</button> <button class="ghost" onclick="EX(4)">Example 9.4</button> <button class="ghost" id="bexp" onclick="EXPLORE()">Explore: all inputs and results</button></div><p class="note" id="exnote">Change any input and every result updates. Press an example to return to its solution.</p></div>
+<div id="exspace"></div>
+<div id="explore">
 <div class="grid">
  <div class="card"><h2>Parameters (source to target)</h2>
   <label>Translations T<sub>X</sub>, T<sub>Y</sub>, T<sub>Z</sub> (m)</label><div class="row"><input id="tx" type="number" step="any"><input id="ty" type="number" step="any"><input id="tz" type="number" step="any"></div>
   <label>Rotations R<sub>X</sub>, R<sub>Y</sub>, R<sub>Z</sub> (")</label><div class="row"><input id="rx" type="number" step="any"><input id="ry" type="number" step="any"><input id="rz" type="number" step="any"></div>
   <label>Scale change (ppm)</label><input id="s" type="number" step="any">
   <label>Rotation convention used to apply them</label><select id="conv"><option value="position_vector">position vector (as published)</option><option value="coordinate_frame">coordinate frame (the other one)</option></select>
-  <button onclick="preset(1)">JUPEM: WGS84 to Kertau (MRT68)</button> <button class="ghost" onclick="preset(2)">Translations only</button>
+  <button onclick="preset(1)">JUPEM: WGS84 to Kertau (MRT68)</button> <button onclick="preset(2)">Translations only</button>
   <h2 style="margin-top:14px">A point on the source datum (WGS84 ellipsoid)</h2>
   <label>Latitude N</label><div class="dms"><input id="qlatd" type="number"><input id="qlatm" type="number"><input id="qlats" type="number" step="any"></div>
   <label>Longitude E</label><div class="dms"><input id="qlond" type="number"><input id="qlonm" type="number"><input id="qlons" type="number" step="any"></div>
@@ -63,11 +69,12 @@ footer{max-width:1100px;margin:10px auto 30px;padding:0 16px;font-size:12px;colo
  <div>
   <div class="card"><h2>Effect at the example marks (east, north, up in m)</h2><table class="res" id="out"></table></div>
   <div class="card" style="margin-top:12px"><h2>The point on the target datum (Modified Everest ellipsoid)</h2><table class="res" id="pout"></table></div>
-  <div class="card" style="margin-top:12px"><h2>What the rotations and scale add to the translations (arrows exaggerated)</h2><svg id="fig"></svg><p class="note" id="fnote"></p></div>
+  <div style="display:none"><svg id="fig"></svg><p id="fnote"></p></div>
  </div>
 </div>
-<div class="try"><b>Try this.</b> With the JUPEM set, switch the convention: the result at S moves by about 770 m. A wrong convention is never a small error. Then set all rotations to zero and put 1" on R<sub>Z</sub>: every mark moves by about 31 m, because a rotation about the Earth's axis moves each point by about 31 m per second of arc. A rotation of a few seconds therefore matters even in a small project area.</div>
+<div class="try"><b>Try this.</b> With the JUPEM set, switch the convention: the result at S moves by about 774 m. A wrong convention is never a small error. Then set all rotations to zero and put 1" on R<sub>Z</sub>: every mark moves by about 31 m, because a rotation about the Earth's axis moves each point by about 31 m per second of arc. A rotation of a few seconds therefore matters even in a small project area.</div>
 
+</div>
 </main>
 <footer>Companion app to <i>Datums, Coordinate Systems and Map Projections</i> by Yam Khoon Tor. &copy; 2026 Yam Khoon Tor. A teaching aid, provided without warranty: check results independently before use in survey work. The running-case points are illustrative.</footer>
 <script>
@@ -338,24 +345,81 @@ const SVY = GEO.SVY21, WGS = GEO.ELLIPSOIDS.WGS84, GRS = GEO.ELLIPSOIDS.GRS80, E
 /* worked-example buttons */
 function S(id, v){ $(id).value = v; }
 function Dm(id, d, m, s){ $(id + "d").value = d; $(id + "m").value = m; $(id + "s").value = s; }
-let HL = [];
+let HL = [], CUR = -1;
 function hl(){
   document.querySelectorAll("table.res tr").forEach(tr => tr.classList.remove("hl"));
   if (!HL.length) return;
-  document.querySelectorAll("table.res").forEach(tb => { let head = "";
+  document.querySelectorAll("#explore table.res").forEach(tb => { let head = "";
     tb.querySelectorAll("tr").forEach(tr => { const th = tr.querySelector("th"); if (th) { head = th.textContent.trim(); return; }
       const td = tr.querySelector("td"); if (!td) return; const lab = td.textContent.trim();
-      for (const spec of HL) { let h = "", l = spec; const k = spec.indexOf(" > "); if (k >= 0) { h = spec.slice(0, k); l = spec.slice(k + 3); }
-        if (h && !head.startsWith(h)) continue;
-        const ok = l.endsWith("…") ? lab.startsWith(l.slice(0, -1)) : lab === l;
-        if (ok) { tr.classList.add("hl"); break; } } }); });
+      for (const spec of HL) { if (match(spec, head, lab)) { tr.classList.add("hl"); break; } } }); });
 }
-function EX(i){ EXS[i][0](); const f = document.querySelector(".grid input, .grid select"); if (f) f.dispatchEvent(new Event("input", {bubbles: true}));
-  $("exnote").innerHTML = EXS[i][1]; HL = EXS[i][2] || []; hl();
+function match(spec, head, lab){ let h = "", l = spec; const k = spec.indexOf(" > "); if (k >= 0) { h = spec.slice(0, k); l = spec.slice(k + 3); }
+  if (h && !head.startsWith(h.endsWith("…") ? h.slice(0, -1) : h)) return false;
+  return l.endsWith("…") ? lab.startsWith(l.slice(0, -1)) : lab === l; }
+/* find a result row in the calculator by "Header > Row" and return its value */
+function lookup(spec){
+  if (spec.startsWith("#")) { const e = $(spec.slice(1)); return e ? e.innerHTML : "—"; }
+  for (const tb of document.querySelectorAll("#explore table.res")) { let head = "";
+    for (const tr of tb.querySelectorAll("tr")) { const th = tr.querySelector("th"); if (th) { head = th.textContent.trim(); continue; }
+      const td = [...tr.querySelectorAll("td")]; if (!td.length) continue;
+      if (match(spec, head, td[0].textContent.trim())) return td.slice(1).map(x => x.innerHTML).join(" &nbsp; "); } }
+  return "—";
+}
+/* the solution space of one worked example */
+function mirror(id){ const o = $(id); if (!o) return document.createTextNode("?");
+  let m; if (o.tagName === "SELECT") { m = o.cloneNode(true); m.value = o.value; }
+  else if (o.tagName === "TEXTAREA") { m = document.createElement("textarea"); m.rows = o.rows; m.value = o.value; m.style.cssText = o.style.cssText; }
+  else { m = document.createElement("input"); m.type = o.type === "range" ? "number" : o.type; m.step = o.step || "any"; if (o.min) m.min = o.min; if (o.max) m.max = o.max; if (o.type === "checkbox") m.checked = o.checked; else m.value = o.value; }
+  m.removeAttribute("id"); m.dataset.src = id;
+  const go = () => { if (o.type === "checkbox") o.checked = m.checked; else o.value = m.value;
+    o.dispatchEvent(new Event("input", {bubbles: true})); o.dispatchEvent(new Event("change", {bubbles: true})); setTimeout(refresh, 0); };
+  m.addEventListener("input", go); m.addEventListener("change", go); return m; }
+function buildSpace(i){
+  const sol = (typeof SOL !== "undefined" && SOL[EXS[i][4]]) || null, box = $("exspace");
+  let g = '<div class="grid"><div><div class="card"><h2>Given</h2><div id="sgiven"></div><p class="note" style="margin-top:10px">Change a value and the solution follows.</p></div>';
+  g += EXS[i][3] ? `<div class="try"><b>Try this.</b> ${EXS[i][3]}</div>` : "";
+  g += '</div><div><div class="card"><h2>Solution</h2><table class="res" id="ssol"></table></div>';
+  g += `<div class="card" style="margin-top:12px"><h2>The book's values</h2><p class="note" style="margin:0">${EXS[i][1]}</p></div></div></div>`;
+  box.innerHTML = g;
+  const gv = $("sgiven");
+  for (const grp of (sol ? sol.given : [])) {
+    const lab = document.createElement("label"); lab.innerHTML = grp[0]; gv.appendChild(lab);
+    const ids = grp[1]; const row = document.createElement("div");
+    if (ids.length === 1 && $(ids[0]) && $(ids[0]).type === "checkbox") { row.className = "chk"; const m = mirror(ids[0]); row.appendChild(m); lab.remove(); const sp = document.createElement("span"); sp.innerHTML = grp[0]; row.appendChild(sp); }
+    else { row.className = ids.length === 3 && /d$/.test(ids[0]) ? "dms" : "row"; ids.forEach(id => row.appendChild(mirror(id))); }
+    gv.appendChild(row); }
+  refresh();
+}
+function refresh(){
+  if (CUR < 0) return;
+  document.querySelectorAll("#sgiven [data-src]").forEach(m => { if (m === document.activeElement) return; const o = $(m.dataset.src); if (!o) return;
+    if (o.type === "checkbox") m.checked = o.checked; else if (m.value !== o.value) m.value = o.value; });
+  const sol = (typeof SOL !== "undefined" && SOL[EXS[CUR][4]]) || null, t = $("ssol"); if (!t || !sol) return;
+  t.innerHTML = sol.items.map(it => it[0] === "#" ? `<tr><th colspan="2">${it[1]}</th></tr>` : it[1].startsWith("#") ?
+    `<tr${it[0] === "!" ? ' class="hl"' : ""}><td colspan="2" class="txt"><b>${it[2]}</b><br>${lookup(it[1])}</td></tr>` :
+    `<tr${it[0] === "!" ? ' class="hl"' : ""}><td>${it[2]}</td><td class="v">${lookup(it[1])}</td></tr>`).join("");
+}
+function EX(i){
+  CUR = i; EXS[i][0](); const f = document.querySelector("#explore input, #explore select"); if (f) f.dispatchEvent(new Event("input", {bubbles: true}));
+  HL = EXS[i][2] || []; hl();
+  document.querySelectorAll("button.on").forEach(b => b.classList.remove("on"));
   document.querySelectorAll(".exb button").forEach((b, j) => b.classList.toggle("on", j === i));
-  const r = document.querySelector("table.res tr.hl"); if (r && window.innerWidth < 760) r.scrollIntoView({behavior: "smooth", block: "center"}); }
-document.addEventListener("input", () => setTimeout(hl, 0));
-document.addEventListener("change", () => setTimeout(hl, 0));
+  $("explore").style.display = "none"; $("exspace").style.display = ""; $("exnote").style.display = "none";
+  buildSpace(i);
+}
+function EXPLORE(){
+  CUR = -1; HL = []; hl(); $("explore").style.display = ""; $("exspace").style.display = "none"; $("exnote").style.display = "";
+  document.querySelectorAll(".exb button").forEach(b => b.classList.toggle("on", b.id === "bexp"));
+}
+document.addEventListener("input", () => setTimeout(() => { hl(); refresh(); }, 0));
+document.addEventListener("change", () => setTimeout(() => { hl(); refresh(); }, 0));
+/* preset buttons in the calculator: the one pressed shows as selected; typing a new value clears it */
+const PRESETS = () => [...document.querySelectorAll("#explore button")];
+document.addEventListener("click", e => { const b = e.target.closest("button"); if (!b || !b.closest("#explore")) return;
+  PRESETS().forEach(x => x.classList.remove("on")); b.classList.add("on"); });
+document.addEventListener("input", e => { if (e.isTrusted && e.target.closest("#explore")) PRESETS().forEach(x => x.classList.remove("on")); }, true);
+window.addEventListener("load", () => { const p = PRESETS(); if (p.length) p[0].classList.add("on"); if (typeof EXS !== "undefined" && EXS.length) EX(0); });
 
 /* small user-interface helpers */
 const $ = id => document.getElementById(id);
@@ -418,11 +482,12 @@ function molo(q, T){
 }
 setDms("qlat", CASE.S.lat); setDms("qlon", CASE.S.lon); $("qh").value = CASE.S.h; preset(1); wire(calc);
 
-const EXS = [[function(){preset(1); Dm("qlat",1,51,27.08807); Dm("qlon",102,56,31.72178); S("qh",7.118);}, "JUPEM's test point on PMGSN94, as in Example 9.1: Step 1 X −1 427 748.5544, Y 6 212 873.7113, Z 205 359.3972; Step 2 rotation terms −366.9701, −81.2652, −92.7668; Step 3 X −1 427 735.7485, Y 6 212 017.0621, Z 205 353.2394; result 1° 51′ 27.38565″, 102° 56′ 37.52662″, h 2.350 m, against JUPEM's 1° 51′ 27.38567″, 102° 56′ 37.52660″.", ['Step 1 > X', 'Step 1 > Y', 'Step 1 > Z', 'Step 2: rotation terms', 'Step 3 > X', 'Step 3 > Y', 'Step 3 > Z', 'Step 4 > Latitude', 'Step 4 > Longitude', 'Step 4 > h']],
-[function(){preset(1); setDms("qlat", CASE.S.lat); setDms("qlon", CASE.S.lon); S("qh", CASE.S.h);}, 'S on Kertau by the seven parameters of Table 9.1, as in Example 9.2: 1° 27′ 10.17821″, 103° 46′ 16.15825″, h 3.794 m. Pivoted at S, the same transformation has translations +14.437, −862.490, −6.822 m (Molodensky-Badekas).', ['Step 4 > Latitude', 'Step 4 > Longitude', 'Step 4 > h', 'The same set pivoted at this point (Molodensky-Badekas): T']],
-[function(){["tx","ty","tz","rx","ry","rz","s"].forEach((id, i) => S(id, [11, -851, -5, 0, 0, 0, 0][i])); S("conv","position_vector"); setDms("qlat", CASE.S.lat); setDms("qlon", CASE.S.lon); S("qh", CASE.S.h);}, 'S on Kertau by the three translations of Table 5.2, WGS84 to Kertau: 1° 27′ 10.22762″, 103° 46′ 16.17775″, h 15.814 m. The <b>Shift</b> rows are the rigorous values that Example 9.4 compares with the Molodensky formulae (+0.21959″, +6.20764″).', ['Step 4 > Latitude', 'Step 4 > Longitude', 'Step 4 > h', 'Shift Δφ, Δλ', 'Shift Δh']],
-[function(){preset(1); S("conv","coordinate_frame"); setDms("qlat", CASE.S.lat); setDms("qlon", CASE.S.lon); S("qh", CASE.S.h);}, 'The same seven parameters applied with the wrong rotation convention: S moves to 1° 27′ 16.26424″, 103° 45′ 51.85577″, 187 m north and 751 m west (Example 9.3).', ['Step 4 > Latitude', 'Step 4 > Longitude', 'At S, position vector minus coordinate frame']],
-[function(){["tx","ty","tz","rx","ry","rz","s"].forEach((id, i) => S(id, [11, -851, -5, 0, 0, 0, 0][i])); S("conv","position_vector"); setDms("qlat", CASE.S.lat); setDms("qlon", CASE.S.lon); S("qh", CASE.S.h);}, 'S with the three translations, WGS84 to Kertau. Rigorous shift +0.21959″, +6.20764″, +3.800 m; standard Molodensky +0.21954″, +6.20683″, +3.797 m; abridged +0.21854″, +6.20684″, +3.797 m (Example 9.4).', ['Shift Δφ, Δλ', 'Shift Δh', 'Δφ, Δλ', 'Δh', 'Δφ, Δλ', 'Δh']]];
+const EXS = [[function(){preset(1); Dm("qlat",1,51,27.08807); Dm("qlon",102,56,31.72178); S("qh",7.118);}, "JUPEM's test point on PMGSN94, as in Example 9.1: Step 1 X −1 427 748.5544, Y 6 212 873.7113, Z 205 359.3972; Step 2 rotation terms −366.9701, −81.2652, −92.7668; Step 3 X −1 427 735.7485, Y 6 212 017.0621, Z 205 353.2394; result 1° 51′ 27.38565″, 102° 56′ 37.52662″, h 2.350 m, against JUPEM's 1° 51′ 27.38567″, 102° 56′ 37.52660″.", ['Step 1 > X', 'Step 1 > Y', 'Step 1 > Z', 'Step 2: rotation terms', 'Step 3 > X', 'Step 3 > Y', 'Step 3 > Z', 'Step 4 > Latitude', 'Step 4 > Longitude', 'Step 4 > h'], 'Switch the rotation convention: the result moves by hundreds of metres. That is why the published test point is computed before anything else (Example 9.3).', 'Example 9.1'],
+[function(){preset(1); setDms("qlat", CASE.S.lat); setDms("qlon", CASE.S.lon); S("qh", CASE.S.h);}, 'S on Kertau by the seven parameters of Table 9.1, as in Example 9.2: 1° 27′ 10.17821″, 103° 46′ 16.15825″, h 3.794 m. Pivoted at S, the same transformation has translations +14.437, −862.490, −6.822 m (Molodensky-Badekas).', ['Step 4 > Latitude', 'Step 4 > Longitude', 'Step 4 > h', 'The same set pivoted at this point (Molodensky-Badekas): T'], 'Press <i>Example 9.2, three</i> and compare: about 1.5 m north and 0.6 m east apart in position, 12 m in height.', 'Example 9.2, seven'],
+[function(){["tx","ty","tz","rx","ry","rz","s"].forEach((id, i) => S(id, [11, -851, -5, 0, 0, 0, 0][i])); S("conv","position_vector"); setDms("qlat", CASE.S.lat); setDms("qlon", CASE.S.lon); S("qh", CASE.S.h);}, 'S on Kertau by the three translations of Table 5.2: 1° 27′ 10.22762″, 103° 46′ 16.17775″, h 15.814 m; shift +0.21959″, +6.20764″, +3.800 m, the rigorous values of Example 9.4.', ['Step 4 > Latitude', 'Step 4 > Longitude', 'Step 4 > h', 'Shift Δφ, Δλ', 'Shift Δh'], 'Press <i>Example 9.2, seven</i> and compare: the translations look nothing alike, yet the positions agree within 1.5 m.', 'Example 9.2, three'],
+[function(){preset(1); S("conv","coordinate_frame"); setDms("qlat", CASE.S.lat); setDms("qlon", CASE.S.lon); S("qh", CASE.S.h);}, 'The same seven parameters applied with the wrong rotation convention: S moves to 1° 27′ 16.26424″, 103° 45′ 51.85577″, 187 m north and 751 m west (Example 9.3).', ['Step 4 > Latitude', 'Step 4 > Longitude', 'At S, position vector minus coordinate frame'], 'Switch the convention back to position vector: S returns to the correct position, 774 m away. A wrong convention is never a small error.', 'Example 9.3'],
+[function(){["tx","ty","tz","rx","ry","rz","s"].forEach((id, i) => S(id, [11, -851, -5, 0, 0, 0, 0][i])); S("conv","position_vector"); setDms("qlat", CASE.S.lat); setDms("qlon", CASE.S.lon); S("qh", CASE.S.h);}, 'S with the three translations, WGS84 to Kertau. Rigorous shift +0.21959″, +6.20764″, +3.800 m; standard Molodensky +0.21954″, +6.20683″, +3.797 m; abridged +0.21854″, +6.20684″, +3.797 m (Example 9.4).', ['Shift Δφ, Δλ', 'Shift Δh', 'Δφ, Δλ', 'Δh', 'Δφ, Δλ', 'Δh'], "Set all rotations to zero and put 1″ on R<sub>Z</sub>: every mark moves by about 31 m, the effect of one second of rotation about the Earth's axis.", 'Example 9.4']];
+const SOL = {"Example 9.1": {"given": [["Translations T_X, T_Y, T_Z (m)", ["tx", "ty", "tz"]], ["Rotations R_X, R_Y, R_Z (″)", ["rx", "ry", "rz"]], ["Scale change (ppm)", ["s"]], ["Rotation convention", ["conv"]], ["PMGSN94 latitude (° ′ ″)", ["qlatd", "qlatm", "qlats"]], ["PMGSN94 longitude (° ′ ″)", ["qlond", "qlonm", "qlons"]], ["h (m)", ["qh"]]], "items": [["#", "Step 1. To Cartesian, WGS84", ""], ["!", "Step 1… > X", "X"], ["!", "Step 1… > Y", "Y"], ["!", "Step 1… > Z", "Z"], ["#", "Step 2. Rotation terms", ""], ["!", "Step 2: rotation terms", "R × X, in X, Y, Z"], ["#", "Step 3. Translations, scale and rotations applied", ""], ["!", "Step 3… > X", "X"], ["!", "Step 3… > Y", "Y"], ["!", "Step 3… > Z", "Z"], ["#", "Step 4. To geodetic, Modified Everest", ""], ["!", "Step 4… > Latitude", "Latitude"], ["!", "Step 4… > Longitude", "Longitude"], ["!", "Step 4… > h", "h"]]}, "Example 9.2, seven": {"given": [["Translations T_X, T_Y, T_Z (m)", ["tx", "ty", "tz"]], ["Rotations R_X, R_Y, R_Z (″)", ["rx", "ry", "rz"]], ["Scale change (ppm)", ["s"]], ["S: latitude (° ′ ″)", ["qlatd", "qlatm", "qlats"]], ["S: longitude (° ′ ″)", ["qlond", "qlonm", "qlons"]], ["S: h (m)", ["qh"]]], "items": [["#", "Steps 1–3. Seven parameters applied at S", ""], ["r", "Step 3… > X", "X"], ["r", "Step 3… > Y", "Y"], ["r", "Step 3… > Z", "Z"], ["#", "Step 4. S on Kertau by the seven parameters", ""], ["!", "Step 4… > Latitude", "Latitude"], ["!", "Step 4… > Longitude", "Longitude"], ["!", "Step 4… > h", "h"], ["#", "The same set pivoted at S", ""], ["!", "The same set pivoted…", "Molodensky-Badekas translations at S"]]}, "Example 9.2, three": {"given": [["Translations T_X, T_Y, T_Z (m)", ["tx", "ty", "tz"]], ["S: latitude (° ′ ″)", ["qlatd", "qlatm", "qlats"]], ["S: longitude (° ′ ″)", ["qlond", "qlonm", "qlons"]], ["S: h (m)", ["qh"]]], "items": [["#", "Steps 1–3. Three translations applied at S", ""], ["r", "Step 3… > X", "X"], ["r", "Step 3… > Y", "Y"], ["r", "Step 3… > Z", "Z"], ["#", "Step 4. S on Kertau by the three translations", ""], ["!", "Step 4… > Latitude", "Latitude"], ["!", "Step 4… > Longitude", "Longitude"], ["!", "Step 4… > h", "h"], ["!", "Shift Δφ, Δλ", "Shift Δφ, Δλ"], ["!", "Shift Δh", "Shift Δh"]]}, "Example 9.3": {"given": [["Rotation convention used", ["conv"]], ["S: latitude (° ′ ″)", ["qlatd", "qlatm", "qlats"]], ["S: longitude (° ′ ″)", ["qlond", "qlonm", "qlons"]], ["S: h (m)", ["qh"]]], "items": [["#", "Steps 1–3 with the rotations reversed", ""], ["r", "Step 2: rotation terms", "Rotation terms (signs reversed)"], ["r", "Step 3… > X", "X"], ["r", "Step 3… > Y", "Y"], ["r", "Step 3… > Z", "Z"], ["#", "Step 4. The wrong position", ""], ["!", "Step 4… > Latitude", "Latitude"], ["!", "Step 4… > Longitude", "Longitude"], ["#", "The error", ""], ["!", "At S, position vector minus coordinate frame", "Distance between the two results"]]}, "Example 9.4": {"given": [["Translations T_X, T_Y, T_Z (m)", ["tx", "ty", "tz"]], ["Rotations R_X, R_Y, R_Z (″)", ["rx", "ry", "rz"]], ["S: latitude (° ′ ″)", ["qlatd", "qlatm", "qlats"]], ["S: longitude (° ′ ″)", ["qlond", "qlonm", "qlons"]], ["S: h (m)", ["qh"]]], "items": [["#", "Rigorous: through Cartesian coordinates", ""], ["!", "Step 4… > Shift Δφ, Δλ", "Δφ, Δλ"], ["!", "Step 4… > Shift Δh", "Δh"], ["#", "Standard Molodensky", ""], ["!", "Molodensky, standard… > Δφ, Δλ", "Δφ, Δλ"], ["!", "Molodensky, standard… > Δh", "Δh"], ["#", "Abridged Molodensky", ""], ["!", "Molodensky, abridged… > Δφ, Δλ", "Δφ, Δλ"], ["!", "Molodensky, abridged… > Δh", "Δh"]]}};
 
 </script>
 </body>

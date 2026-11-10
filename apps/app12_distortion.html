@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>How much does a Transverse Mercator grid distort?</title>
+<title>One line on two grids; reading a projection definition</title>
 <style>
 :root{--ink:#16202b;--quiet:#55606d;--line:#c9d3de;--pale:#eef3f8;--paper:#ffffff;--accent:#1f5fa8;--dark:#1f3b5c;--warn:#b42318;--ok:#1a7f37;--orange:#c2410c}
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--ink:#e6edf3;--quiet:#9aa7b4;--line:#33414f;--pale:#1b2836;--paper:#0f1720;--accent:#6ea8ff;--dark:#9cc3f0;--warn:#ff7b72;--ok:#56d364;--orange:#f0883e}}
@@ -32,8 +32,12 @@ table.res th{font:600 12px system-ui,sans-serif;color:var(--quiet)}
 table.res td.v{text-align:right;white-space:nowrap}
 .note{font-size:13.5px;color:var(--quiet)}
 .exbar{margin-bottom:14px}.exb button{margin:0 6px 6px 0}.exb button.on{background:var(--accent);color:#fff}
+button:not(.on){background:transparent;color:var(--accent)}button.on{background:var(--accent);color:#fff}
 #exnote{margin:4px 0 0}
 table.res tr.hl td{background:#ffe9a8;font-weight:700}
+table.res td.txt{font:14px/1.45 Georgia,serif;white-space:normal}table.res td.txt p{margin:4px 0}
+#exspace .grid{grid-template-columns:minmax(260px,360px) 1fr}#sgiven textarea{width:100%;font:12px ui-monospace,monospace}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) table.res tr.hl td{background:#4a3b0c}}
 table.res tr.hl td:first-child{box-shadow:inset 4px 0 0 #d4a017}
 .try{background:var(--pale);border-radius:10px;padding:10px 14px;margin-top:16px;font-size:14px}
 .try b{color:var(--dark)}
@@ -45,33 +49,31 @@ footer{max-width:1100px;margin:10px auto 30px;padding:0 16px;font-size:12px;colo
 </style>
 </head>
 <body>
-<header><div class="num">App 12 · Chapter 12</div><h1>How much does a Transverse Mercator grid distort?</h1><p>Scale factor, convergence and the arc-to-chord correction, as the central scale factor and the distance from the central meridian change.</p></header>
+<header><div class="num">App 12 · Chapter 12</div><h1>One line on two grids; reading a projection definition</h1><p>The same line on SVY21 and on UTM zone 48N, compared with the line on the ellipsoid; and a projection definition, as supplied with a GIS file, checked against a known point.</p></header>
 <main>
-<div class="card exbar"><h2>Worked examples in the book</h2><div class="exb"><button class="ghost" onclick="EX(0)">Example 12.1, SVY21</button> <button class="ghost" onclick="EX(1)">Example 12.1, UTM</button> <button class="ghost" onclick="EX(2)">Example 12.2</button> <button class="ghost" onclick="EX(3)">Example 12.2, retyped</button></div><p class="note" id="exnote">Press a button to load the values of a worked example in the book.</p></div>
+<div class="card exbar"><h2>Worked examples in the book</h2><div class="exb"><button class="ghost" onclick="EX(0)">Example 12.1</button> <button class="ghost" onclick="EX(1)">Example 12.2</button> <button class="ghost" onclick="EX(2)">Example 12.2, retyped</button> <button class="ghost" id="bexp" onclick="EXPLORE()">Explore: all inputs and results</button></div><p class="note" id="exnote">Change any input and every result updates. Press an example to return to its solution.</p></div>
+<div id="exspace"></div>
+<div id="explore">
 <div class="grid">
- <div class="card"><h2>Projection and place</h2>
-  <label>Central scale factor k<sub>0</sub>: <b id="k0v"></b></label><input id="k0" type="range" min="0.9990" max="1.0002" step="0.00001" value="1">
-  <label>Distance from the central meridian (km): <b id="wv"></b></label><input id="w" type="range" min="10" max="400" step="5" value="200">
-  <label>Latitude (degrees) for convergence</label><input id="lat" type="number" step="any" value="1.45">
-  <label>Line for arc-to-chord: length north-south (km) and distance from the central meridian (km)</label><div class="row"><input id="ll" type="number" step="any" value="1.5"><input id="lx" type="number" step="any" value="-7.1"></div>
-  <button onclick="set(1,60)">SVY21 (k0 = 1)</button> <button class="ghost" onclick="set(0.9996,350)">UTM (k0 = 0.9996)</button>
+ <div class="card"><h2>The line (latitude, longitude in decimal degrees)</h2>
+  <label>From</label><div class="row"><input id="la1" type="number" step="any"><input id="lo1" type="number" step="any"></div>
+  <label>To</label><div class="row"><input id="la2" type="number" step="any"><input id="lo2" type="number" step="any"></div>
+  <button onclick="line('S','J')">S to J</button> <button onclick="line('S','B')">S to Batam B</button>
+  <p class="note">Both grids on the WGS84 ellipsoid. SVY21: central meridian 103° 50′, k<sub>0</sub> = 1. UTM 48N: central meridian 105°, k<sub>0</sub> = 0.9996.</p>
  </div>
- <div>
-  <svg id="fig" style="display:none"></svg>
-  <div class="card" style="margin-top:12px"><h2>Values</h2><table class="res" id="out"></table></div>
- </div>
+ <div class="card"><h2>One line on two grids</h2><table class="res" id="out121"></table></div>
 </div>
 <div class="grid" style="margin-top:14px">
- <div class="card"><h2>The line S to J on two grids</h2><table class="res" id="out121"></table></div>
- <div class="card"><h2>Check a projection definition</h2>
-  <label>latitude_of_origin, central_meridian (decimal degrees)</label><div class="row"><input id="d0a" type="number" step="any" value="1.36666666666667"><input id="d0o" type="number" step="any" value="103.833333333333"></div>
-  <label>scale_factor</label><input id="dk" type="number" step="any" value="1">
-  <label>false_easting, false_northing (m)</label><div class="row"><input id="dfe" type="number" step="any" value="28001.642"><input id="dfn" type="number" step="any" value="38744.572"></div>
-  <table class="res" id="out122"></table>
+ <div class="card"><h2>A projection definition (paste one here)</h2>
+  <textarea id="wkt" rows="13" style="width:100%;font:12px ui-monospace,monospace;box-sizing:border-box"></textarea>
+  <label>Test point: latitude, longitude (decimal degrees)</label><div class="row"><input id="tla" type="number" step="any"><input id="tlo" type="number" step="any"></div>
+  <label>Its known grid coordinates: northing, easting (m)</label><div class="row"><input id="tn" type="number" step="any"><input id="te" type="number" step="any"></div>
  </div>
+ <div class="card"><h2>What the definition says, and the test</h2><table class="res" id="out122"></table><div id="warn122" class="note" style="margin-top:8px"></div></div>
 </div>
-<div class="try"><b>Try this.</b> With k<sub>0</sub> = 1 the distortion at mark S, 7 km west of the SVY21 central meridian, is under 1 ppm: 1 mm in a kilometre. On UTM zone 48N the same site is 137 km from the central meridian and the error is about −170 ppm: 17 cm in a kilometre. Move k<sub>0</sub> and watch the distance at which the scale is exactly true move outwards. Convergence near the equator is tiny: try latitude 45° to see why it matters more elsewhere.</div>
+<div class="try"><b>Try this.</b> Press <i>S to Batam B</i>: over 47 km the SVY21 span is still within 2 ppm of the ellipsoid, while UTM is 214 ppm short. Then, in the definition, change scale_factor to 0.9996 and watch the test fail by metres: a definition is checked by computing a known point, not by reading it.</div>
 
+</div>
 </main>
 <footer>Companion app to <i>Datums, Coordinate Systems and Map Projections</i> by Yam Khoon Tor. &copy; 2026 Yam Khoon Tor. A teaching aid, provided without warranty: check results independently before use in survey work. The running-case points are illustrative.</footer>
 <script>
@@ -342,24 +344,81 @@ const SVY = GEO.SVY21, WGS = GEO.ELLIPSOIDS.WGS84, GRS = GEO.ELLIPSOIDS.GRS80, E
 /* worked-example buttons */
 function S(id, v){ $(id).value = v; }
 function Dm(id, d, m, s){ $(id + "d").value = d; $(id + "m").value = m; $(id + "s").value = s; }
-let HL = [];
+let HL = [], CUR = -1;
 function hl(){
   document.querySelectorAll("table.res tr").forEach(tr => tr.classList.remove("hl"));
   if (!HL.length) return;
-  document.querySelectorAll("table.res").forEach(tb => { let head = "";
+  document.querySelectorAll("#explore table.res").forEach(tb => { let head = "";
     tb.querySelectorAll("tr").forEach(tr => { const th = tr.querySelector("th"); if (th) { head = th.textContent.trim(); return; }
       const td = tr.querySelector("td"); if (!td) return; const lab = td.textContent.trim();
-      for (const spec of HL) { let h = "", l = spec; const k = spec.indexOf(" > "); if (k >= 0) { h = spec.slice(0, k); l = spec.slice(k + 3); }
-        if (h && !head.startsWith(h)) continue;
-        const ok = l.endsWith("…") ? lab.startsWith(l.slice(0, -1)) : lab === l;
-        if (ok) { tr.classList.add("hl"); break; } } }); });
+      for (const spec of HL) { if (match(spec, head, lab)) { tr.classList.add("hl"); break; } } }); });
 }
-function EX(i){ EXS[i][0](); const f = document.querySelector(".grid input, .grid select"); if (f) f.dispatchEvent(new Event("input", {bubbles: true}));
-  $("exnote").innerHTML = EXS[i][1]; HL = EXS[i][2] || []; hl();
+function match(spec, head, lab){ let h = "", l = spec; const k = spec.indexOf(" > "); if (k >= 0) { h = spec.slice(0, k); l = spec.slice(k + 3); }
+  if (h && !head.startsWith(h.endsWith("…") ? h.slice(0, -1) : h)) return false;
+  return l.endsWith("…") ? lab.startsWith(l.slice(0, -1)) : lab === l; }
+/* find a result row in the calculator by "Header > Row" and return its value */
+function lookup(spec){
+  if (spec.startsWith("#")) { const e = $(spec.slice(1)); return e ? e.innerHTML : "—"; }
+  for (const tb of document.querySelectorAll("#explore table.res")) { let head = "";
+    for (const tr of tb.querySelectorAll("tr")) { const th = tr.querySelector("th"); if (th) { head = th.textContent.trim(); continue; }
+      const td = [...tr.querySelectorAll("td")]; if (!td.length) continue;
+      if (match(spec, head, td[0].textContent.trim())) return td.slice(1).map(x => x.innerHTML).join(" &nbsp; "); } }
+  return "—";
+}
+/* the solution space of one worked example */
+function mirror(id){ const o = $(id); if (!o) return document.createTextNode("?");
+  let m; if (o.tagName === "SELECT") { m = o.cloneNode(true); m.value = o.value; }
+  else if (o.tagName === "TEXTAREA") { m = document.createElement("textarea"); m.rows = o.rows; m.value = o.value; m.style.cssText = o.style.cssText; }
+  else { m = document.createElement("input"); m.type = o.type === "range" ? "number" : o.type; m.step = o.step || "any"; if (o.min) m.min = o.min; if (o.max) m.max = o.max; if (o.type === "checkbox") m.checked = o.checked; else m.value = o.value; }
+  m.removeAttribute("id"); m.dataset.src = id;
+  const go = () => { if (o.type === "checkbox") o.checked = m.checked; else o.value = m.value;
+    o.dispatchEvent(new Event("input", {bubbles: true})); o.dispatchEvent(new Event("change", {bubbles: true})); setTimeout(refresh, 0); };
+  m.addEventListener("input", go); m.addEventListener("change", go); return m; }
+function buildSpace(i){
+  const sol = (typeof SOL !== "undefined" && SOL[EXS[i][4]]) || null, box = $("exspace");
+  let g = '<div class="grid"><div><div class="card"><h2>Given</h2><div id="sgiven"></div><p class="note" style="margin-top:10px">Change a value and the solution follows.</p></div>';
+  g += EXS[i][3] ? `<div class="try"><b>Try this.</b> ${EXS[i][3]}</div>` : "";
+  g += '</div><div><div class="card"><h2>Solution</h2><table class="res" id="ssol"></table></div>';
+  g += `<div class="card" style="margin-top:12px"><h2>The book's values</h2><p class="note" style="margin:0">${EXS[i][1]}</p></div></div></div>`;
+  box.innerHTML = g;
+  const gv = $("sgiven");
+  for (const grp of (sol ? sol.given : [])) {
+    const lab = document.createElement("label"); lab.innerHTML = grp[0]; gv.appendChild(lab);
+    const ids = grp[1]; const row = document.createElement("div");
+    if (ids.length === 1 && $(ids[0]) && $(ids[0]).type === "checkbox") { row.className = "chk"; const m = mirror(ids[0]); row.appendChild(m); lab.remove(); const sp = document.createElement("span"); sp.innerHTML = grp[0]; row.appendChild(sp); }
+    else { row.className = ids.length === 3 && /d$/.test(ids[0]) ? "dms" : "row"; ids.forEach(id => row.appendChild(mirror(id))); }
+    gv.appendChild(row); }
+  refresh();
+}
+function refresh(){
+  if (CUR < 0) return;
+  document.querySelectorAll("#sgiven [data-src]").forEach(m => { if (m === document.activeElement) return; const o = $(m.dataset.src); if (!o) return;
+    if (o.type === "checkbox") m.checked = o.checked; else if (m.value !== o.value) m.value = o.value; });
+  const sol = (typeof SOL !== "undefined" && SOL[EXS[CUR][4]]) || null, t = $("ssol"); if (!t || !sol) return;
+  t.innerHTML = sol.items.map(it => it[0] === "#" ? `<tr><th colspan="2">${it[1]}</th></tr>` : it[1].startsWith("#") ?
+    `<tr${it[0] === "!" ? ' class="hl"' : ""}><td colspan="2" class="txt"><b>${it[2]}</b><br>${lookup(it[1])}</td></tr>` :
+    `<tr${it[0] === "!" ? ' class="hl"' : ""}><td>${it[2]}</td><td class="v">${lookup(it[1])}</td></tr>`).join("");
+}
+function EX(i){
+  CUR = i; EXS[i][0](); const f = document.querySelector("#explore input, #explore select"); if (f) f.dispatchEvent(new Event("input", {bubbles: true}));
+  HL = EXS[i][2] || []; hl();
+  document.querySelectorAll("button.on").forEach(b => b.classList.remove("on"));
   document.querySelectorAll(".exb button").forEach((b, j) => b.classList.toggle("on", j === i));
-  const r = document.querySelector("table.res tr.hl"); if (r && window.innerWidth < 760) r.scrollIntoView({behavior: "smooth", block: "center"}); }
-document.addEventListener("input", () => setTimeout(hl, 0));
-document.addEventListener("change", () => setTimeout(hl, 0));
+  $("explore").style.display = "none"; $("exspace").style.display = ""; $("exnote").style.display = "none";
+  buildSpace(i);
+}
+function EXPLORE(){
+  CUR = -1; HL = []; hl(); $("explore").style.display = ""; $("exspace").style.display = "none"; $("exnote").style.display = "";
+  document.querySelectorAll(".exb button").forEach(b => b.classList.toggle("on", b.id === "bexp"));
+}
+document.addEventListener("input", () => setTimeout(() => { hl(); refresh(); }, 0));
+document.addEventListener("change", () => setTimeout(() => { hl(); refresh(); }, 0));
+/* preset buttons in the calculator: the one pressed shows as selected; typing a new value clears it */
+const PRESETS = () => [...document.querySelectorAll("#explore button")];
+document.addEventListener("click", e => { const b = e.target.closest("button"); if (!b || !b.closest("#explore")) return;
+  PRESETS().forEach(x => x.classList.remove("on")); b.classList.add("on"); });
+document.addEventListener("input", e => { if (e.isTrusted && e.target.closest("#explore")) PRESETS().forEach(x => x.classList.remove("on")); }, true);
+window.addEventListener("load", () => { const p = PRESETS(); if (p.length) p[0].classList.add("on"); if (typeof EXS !== "undefined" && EXS.length) EX(0); });
 
 /* small user-interface helpers */
 const $ = id => document.getElementById(id);
@@ -374,43 +433,65 @@ function svgEl(tag, attrs, text){ const e = document.createElementNS("http://www
 function arrowDefs(svg, id, colour){ const d = svgEl("defs", {}); const m = svgEl("marker", {id, viewBox:"0 0 10 10", refX:9, refY:5, markerWidth:7, markerHeight:7, orient:"auto-start-reverse"});
   m.appendChild(svgEl("path", {d:"M0 0L10 5L0 10z", fill:colour})); d.appendChild(m); svg.appendChild(d); }
 const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
-const R = 6356777;
-function set(k, w){ $("k0").value = k; $("w").value = w; calc(); }
-function calc(){
-  const k0 = val("k0"), w = val("w"), lat = val("lat"); $("k0v").textContent = k0.toFixed(5); $("wv").textContent = w;
-  const xs = []; for (let x = -w; x <= w; x += w / 100) xs.push(x);
-  const ppm = x => (k0 * (1 + (x * 1000) ** 2 / (2 * k0 * k0 * R * R)) - 1) * 1e6;
-  const c = chart($("fig"), [{ xs, ys: xs.map(ppm), colour: "var(--accent)", label: "scale error, ppm" }], { xlabel: "distance from the central meridian (km)", ylabel: "ppm" });
-  $("fig").appendChild(svgEl("line", { x1: c.X(-w), x2: c.X(w), y1: c.Y(0), y2: c.Y(0), stroke: "var(--ok)", "stroke-dasharray": "5 4" }));
-  const at = x => ppm(x).toFixed(1) + " ppm";
-  const dl = 7.1 / (R / 1000 * Math.cos(lat * GEO.D2R)) * GEO.R2D;
-  const conv = (lam) => Math.atan(Math.tan(lam * GEO.D2R) * Math.sin(lat * GEO.D2R)) * GEO.R2D * 3600;
-  const L = val("ll") * 1000, x1 = val("lx") * 1000, tT = -(L) * (2 * x1 + x1) / (6 * k0 * k0 * R * R) * GEO.R2D * 3600;
-  const xtrue = k0 < 1 ? Math.sqrt(2 * k0 * k0 * R * R * (1 / k0 - 1)) / 1000 : 0;
-  $("out").innerHTML = rows([["Scale error on the central meridian", at(0)], ["at 7 km (mark S, SVY21)", at(7.1)], ["at 25 km (edge of Singapore)", at(25)], ["at 137 km (mark S on UTM 48N)", at(137)],
-    ["at 180 km", at(180)], ["Scale is exactly true at", k0 < 1 ? "± " + xtrue.toFixed(0) + " km" : "the central meridian only"],
-    ["Convergence, 1° from the central meridian", conv(1).toFixed(1) + "\""], ["Convergence at mark S", conv(dl).toFixed(2) + "\""],
-    ["Arc-to-chord, the line above", tT.toFixed(3) + "\""]]);
+const WKT0 = `PROJCS["SVY21 / Singapore TM",
+  GEOGCS["SVY21",
+    DATUM["SVY21", SPHEROID["WGS 84", 6378137, 298.257223563]],
+    PRIMEM["Greenwich", 0],
+    UNIT["degree", 0.0174532925199433]],
+  PROJECTION["Transverse_Mercator"],
+  PARAMETER["latitude_of_origin", 1.36666666666667],
+  PARAMETER["central_meridian", 103.833333333333],
+  PARAMETER["scale_factor", 1],
+  PARAMETER["false_easting", 28001.642],
+  PARAMETER["false_northing", 38744.572],
+  UNIT["metre", 1],
+  AUTHORITY["EPSG", "3414"]]`;
+const sgnAng = (deg, d = 2) => { const a = Math.abs(deg) * 3600, s = a >= 60 ? Math.floor(a / 60) + "′ " + (a % 60).toFixed(1) + "″" : a.toFixed(d) + "″"; return (deg < 0 ? "−" : "+") + s; };
+function line(a, b){ S("la1", CASE[a].lat.toFixed(9)); S("lo1", CASE[a].lon.toFixed(9)); S("la2", CASE[b].lat.toFixed(9)); S("lo2", CASE[b].lon.toFixed(9)); c121(); }
+function c121(){
+  const P = [val("la1"), val("lo1")], Q = [val("la2"), val("lo2")], [g, az] = GEO.vincenty(...P, ...Q, ...WGS);
+  const list = [["On the ellipsoid"], ["Geodesic distance", F(g) + " m"], ["Azimuth at From", GEO.degToDms(az, 1)]];
+  const G = { "SVY21": [p => GEO.tmForward(...p, ...SVY, ...WGS), SVY[1], 1], "UTM 48N": [p => GEO.tmForward(...p, 0, 105, 0.9996, 0, 500000, ...WGS), 105, 0.9996] };
+  for (const k in G) {
+    const [fw, cm, k0] = G[k], a = fw(P), b = fw(Q), dN = b[0] - a[0], dE = b[1] - a[1], d = Math.hypot(dN, dE), [, gm] = GEO.tmScaleConv(...P, cm, k0, ...WGS);
+    const brg = (Math.atan2(dE, dN) * GEO.R2D + 360) % 360; let db = brg - az; if (db > 180) db -= 360; if (db < -180) db += 360;
+    list.push([k], ["From: N, E", F(a[0]) + ", " + F(a[1]) + " m"], ["To: N, E", F(b[0]) + ", " + F(b[1]) + " m"],
+      ["Grid span from the coordinates", F(d) + " m"], ["Grid span minus geodesic", ((d - g) * 1000).toFixed(1) + " mm"],
+      ["Line scale factor K = span / geodesic", (d / g).toFixed(8) + " (" + ((d / g - 1) * 1e6 >= 0 ? "+" : "") + ((d / g - 1) * 1e6).toFixed(1) + " ppm)"],
+      ["Convergence at From", sgnAng(gm)], ["Grid bearing", GEO.degToDms(brg, 1)], ["Grid bearing minus azimuth", sgnAng(db, 2)]);
+  }
+  $("out121").innerHTML = rows(list);
 }
-wire(calc);
-function c121(){ const S_ = [CASE.S.lat, CASE.S.lon], J_ = [CASE.J.lat, CASE.J.lon], [g] = GEO.vincenty(...S_, ...J_, ...WGS), list = [];
-  const G = { "SVY21": [p => GEO.tmForward(...p, ...SVY, ...WGS), SVY[1], 1, SVY[4]], "UTM 48N": [p => { const u = GEO.utm(...p, ...WGS); return [u.N, u.E]; }, 105, 0.9996, 500000] };
-  list.push(["Geodesic S to J", F(g) + " m"]);
-  for (const k in G) { const [fw, cm, k0, FE] = G[k], a = fw(S_), b = fw(J_), d = Math.hypot(b[0] - a[0], b[1] - a[1]), [, gm] = GEO.tmScaleConv(...S_, cm, k0, ...WGS);
-    const ga = Math.abs(gm) * 3600, gs = ga >= 60 ? Math.floor(ga / 60) + "′ " + (ga % 60).toFixed(1) + "″" : ga.toFixed(2) + "″";
-    list.push([k], ["E′ of S", ((a[1] - FE) / 1000).toFixed(3) + " km"], ["Line scale factor K", (d / g).toFixed(8)], ["Distortion", ((d / g - 1) * 1e6).toFixed(1) + " ppm"],
-      ["Grid span", F(d) + " m"], ["Convergence at S", (gm < 0 ? "−" : "+") + gs]); }
-  $("out121").innerHTML = rows(list); }
-function c122(){ const p = [CASE.S.lat, CASE.S.lon], ref = GEO.tmForward(...p, ...SVY, ...WGS);
-  const t = GEO.tmForward(...p, val("d0a"), val("d0o"), val("dk"), val("dfn"), val("dfe"), ...WGS);
-  $("out122").innerHTML = rows([["Mark S with this definition: N, E", F(t[0]) + ", " + F(t[1]) + " m"], ["With the SVY21 definition: N, E", F(ref[0]) + ", " + F(ref[1]) + " m"],
-    ["Difference ΔN, ΔE", F(t[0] - ref[0]) + ", " + F(t[1] - ref[1]) + " m"]]); }
-document.addEventListener("input", c122); c121(); c122();
+function c122(){
+  const t = $("wkt").value, num = k => { const m = t.match(new RegExp('PARAMETER\\s*\\[\\s*"' + k + '"\\s*,\\s*([-+\\d.eE]+)', "i")); return m ? +m[1] : NaN; };
+  const sp = t.match(/SPHEROID\s*\[\s*"([^"]*)"\s*,\s*([\d.]+)\s*,\s*([\d.]+)/i), pr = t.match(/PROJECTION\s*\[\s*"([^"]+)"/i), dt = t.match(/DATUM\s*\[\s*"([^"]+)"/i), au = t.match(/AUTHORITY\s*\[\s*"EPSG"\s*,\s*"?(\d+)"?\s*\]\s*\]\s*$/i);
+  const a = sp ? +sp[2] : NaN, rf = sp ? +sp[3] : NaN, lat0 = num("latitude_of_origin"), lon0 = num("central_meridian"), k0 = num("scale_factor"), FE = num("false_easting"), FN = num("false_northing");
+  const dms = x => isNaN(x) ? "—" : x.toFixed(9).replace(/0+$/, "") + "° = " + GEO.degToDms(x, 4);
+  const list = [["As read"], ["Datum", dt ? dt[1] : "—"], ["Ellipsoid a, 1/f", sp ? `${sp[1]}: ${a}, ${rf}` : "—"], ["Projection", pr ? pr[1] : "—"],
+    ["latitude_of_origin", dms(lat0)], ["central_meridian", dms(lon0)], ["scale_factor", isNaN(k0) ? "—" : String(k0)],
+    ["false_easting, false_northing", isNaN(FE) ? "—" : F(FE) + ", " + F(FN) + " m (easting first)"], ["EPSG code", au ? au[1] : "—"]];
+  const w = [];
+  if (pr && !/transverse/i.test(pr[1])) w.push("This app tests Transverse Mercator definitions only.");
+  for (const [n, x] of [["latitude_of_origin", lat0], ["central_meridian", lon0]]) if (!isNaN(x)) { const s = x * 3600, r = Math.abs(s - Math.round(s)); if (r > 0.01) w.push(`${n} is not a whole number of seconds (off by ${r.toFixed(3)}″): check for a truncated or rounded decimal.`); }
+  if ([a, rf, lat0, lon0, k0, FE, FN].some(isNaN)) w.push("Some parameters could not be read.");
+  else {
+    const [N, E] = GEO.tmForward(val("tla"), val("tlo"), lat0, lon0, k0, FN, FE, a, rf);
+    list.push(["The test"], ["Test point with this definition: N, E", F(N) + ", " + F(E) + " m"], ["Known: N, E", F(val("tn")) + ", " + F(val("te")) + " m"],
+      ["Difference ΔN, ΔE", F(Math.abs(N - val("tn")) < 5e-4 ? 0 : N - val("tn")) + ", " + F(Math.abs(E - val("te")) < 5e-4 ? 0 : E - val("te")) + " m"]);
+    const ok = Math.abs(N - val("tn")) < 0.002 && Math.abs(E - val("te")) < 0.002;
+    w.push(ok ? "<span class='ok'>The definition reproduces the known point: it can be trusted for this area.</span>" : "<b>The definition does not reproduce the known point.</b> Find the parameter at fault before using the data.");
+  }
+  $("out122").innerHTML = rows(list); $("warn122").innerHTML = w.map(x => `<p>${x}</p>`).join("");
+}
+function def(retyped){ $("wkt").value = retyped ? WKT0.replace("1.36666666666667", "1.3667") : WKT0;
+  S("tla", CASE.S.lat.toFixed(10)); S("tlo", CASE.S.lon.toFixed(10)); S("tn", 48266.651); S("te", 20890.909); c122(); }
+document.addEventListener("input", () => { c121(); c122(); });
+line("S", "J"); def(false);
 
-const EXS = [[function(){set(1,60);}, 'SVY21: E′ of S −7.111 km, K 1.000 000 59, +0.6 ppm, grid span 1 457.951 m, convergence −5.83″ (Example 12.1).', ['SVY21 > E′ of S', 'SVY21 > Line scale factor K', 'SVY21 > Distortion', 'SVY21 > Grid span', 'SVY21 > Convergence at S', 'Geodesic S to J', 'at 7 km (mark S, SVY21)']],
-[function(){set(0.9996,350);}, 'UTM 48N: E′ of S −136.898 km, K 0.999 831 21, −168.8 ppm, grid span 1 457.704 m, convergence −1′ 52.3″ (Example 12.1).', ['UTM 48N > E′ of S', 'UTM 48N > Line scale factor K', 'UTM 48N > Distortion', 'UTM 48N > Grid span', 'UTM 48N > Convergence at S', 'Geodesic S to J', 'at 137 km (mark S on UTM 48N)']],
-[function(){S("d0a",1.36666666666667); S("d0o",103.833333333333); S("dk",1); S("dfe",28001.642); S("dfn",38744.572);}, 'The definition of Example 12.2 as written: it reproduces SVY21 at mark S to the millimetre.', ['Mark S with this definition: N, E', 'Difference ΔN, ΔE']],
-[function(){S("d0a",1.3667); S("d0o",103.833333333333); S("dk",1); S("dfe",28001.642); S("dfn",38744.572);}, "The origin retyped as 1.3667°: it moves 0.12″ north, and S's northing becomes 48 262.965 m, 3.686 m less (Example 12.2).", ['Mark S with this definition: N, E', 'Difference ΔN, ΔE']]];
+const EXS = [[function(){line("S","J");}, 'S to J (Example 12.1): geodesic 1 457.950 m. SVY21 span 1 457.951 m, K 1.000 000 59 (+0.6 ppm), convergence at S −5.83″; UTM 48N span 1 457.704 m, K 0.999 831 21 (−168.8 ppm), convergence −1′ 52.3″.', ['Geodesic distance', 'Azimuth at From', 'From: N, E', 'To: N, E', 'Grid span from the coordinates', 'Grid span minus geodesic', 'Line scale factor K…', 'Convergence at From', 'Grid bearing', 'Grid bearing minus azimuth'], 'Change J to Batam B (1.125, 104.0333333): over 47 km the SVY21 span is still within 2 ppm of the ellipsoid, while UTM is 214 ppm short.', 'Example 12.1'],
+[function(){def(false);}, 'The definition of Example 12.2 as written: mark S comes out at N 48 266.651, E 20 890.909 m, exactly its SVY21 values.', ['latitude_of_origin', 'central_meridian', 'Test point with this definition: N, E', 'Difference ΔN, ΔE'], 'Change scale_factor to 0.9996: the test fails by metres. A definition is checked by computing a known point, not by reading it.', 'Example 12.2'],
+[function(){def(true);}, "The origin retyped as 1.3667°: the app warns that it is not a whole number of seconds, and S's northing becomes 48 262.965 m, 3.686 m less (Example 12.2).", ['latitude_of_origin', 'Test point with this definition: N, E', 'Difference ΔN, ΔE'], 'Restore the origin to 1.36666666666667: the warning disappears and the test passes again.', 'Example 12.2, retyped']];
+const SOL = {"Example 12.1": {"given": [["S: latitude, longitude (decimal degrees)", ["la1", "lo1"]], ["J: latitude, longitude (decimal degrees)", ["la2", "lo2"]]], "items": [["#", "On the ellipsoid (Example 3.3)", ""], ["r", "Geodesic distance", "Geodesic distance"], ["r", "Azimuth at From", "Azimuth at S"], ["#", "SVY21", ""], ["r", "SVY21 > From: N, E", "S: N, E"], ["r", "SVY21 > To: N, E", "J: N, E"], ["!", "SVY21 > Grid span from the coordinates", "Grid span"], ["!", "SVY21 > Grid span minus geodesic", "Grid span minus geodesic"], ["!", "SVY21 > Line scale factor K…", "K = span / geodesic"], ["!", "SVY21 > Convergence at From", "Convergence at S"], ["r", "SVY21 > Grid bearing", "Grid bearing"], ["r", "SVY21 > Grid bearing minus azimuth", "Grid bearing minus azimuth"], ["#", "UTM 48N", ""], ["r", "UTM 48N > From: N, E", "S: N, E"], ["r", "UTM 48N > To: N, E", "J: N, E"], ["!", "UTM 48N > Grid span from the coordinates", "Grid span"], ["!", "UTM 48N > Grid span minus geodesic", "Grid span minus geodesic"], ["!", "UTM 48N > Line scale factor K…", "K = span / geodesic"], ["!", "UTM 48N > Convergence at From", "Convergence at S"], ["r", "UTM 48N > Grid bearing", "Grid bearing"], ["r", "UTM 48N > Grid bearing minus azimuth", "Grid bearing minus azimuth"]]}, "Example 12.2": {"given": [["The definition, as supplied", ["wkt"]], ["Test point S: latitude, longitude", ["tla", "tlo"]], ["Its known SVY21 N, E (m)", ["tn", "te"]]], "items": [["#", "Step 1. Read each element", ""], ["r", "Datum", "Datum"], ["r", "Ellipsoid a, 1/f", "Ellipsoid a, 1/f"], ["r", "Projection", "Projection"], ["!", "latitude_of_origin", "latitude_of_origin"], ["!", "central_meridian", "central_meridian"], ["r", "scale_factor", "scale_factor"], ["r", "false_easting, false_northing", "false_easting, false_northing"], ["#", "Step 2. Compute the known point with it", ""], ["!", "Test point with this definition: N, E", "S with this definition"], ["r", "Known: N, E", "S, known"], ["!", "Difference ΔN, ΔE", "Difference ΔN, ΔE"], ["!", "#warn122", "Verdict"]]}, "Example 12.2, retyped": {"given": [["The definition, origin retyped as 1.3667", ["wkt"]], ["Test point S: latitude, longitude", ["tla", "tlo"]], ["Its known SVY21 N, E (m)", ["tn", "te"]]], "items": [["#", "Step 1. Read each element", ""], ["!", "latitude_of_origin", "latitude_of_origin"], ["r", "central_meridian", "central_meridian"], ["#", "Step 2. Compute the known point with it", ""], ["!", "Test point with this definition: N, E", "S with this definition"], ["r", "Known: N, E", "S, known"], ["!", "Difference ΔN, ΔE", "Difference ΔN, ΔE"], ["!", "#warn122", "Verdict"]]}};
 
 </script>
 </body>

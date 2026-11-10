@@ -32,8 +32,12 @@ table.res th{font:600 12px system-ui,sans-serif;color:var(--quiet)}
 table.res td.v{text-align:right;white-space:nowrap}
 .note{font-size:13.5px;color:var(--quiet)}
 .exbar{margin-bottom:14px}.exb button{margin:0 6px 6px 0}.exb button.on{background:var(--accent);color:#fff}
+button:not(.on){background:transparent;color:var(--accent)}button.on{background:var(--accent);color:#fff}
 #exnote{margin:4px 0 0}
 table.res tr.hl td{background:#ffe9a8;font-weight:700}
+table.res td.txt{font:14px/1.45 Georgia,serif;white-space:normal}table.res td.txt p{margin:4px 0}
+#exspace .grid{grid-template-columns:minmax(260px,360px) 1fr}#sgiven textarea{width:100%;font:12px ui-monospace,monospace}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) table.res tr.hl td{background:#4a3b0c}}
 table.res tr.hl td:first-child{box-shadow:inset 4px 0 0 #d4a017}
 .try{background:var(--pale);border-radius:10px;padding:10px 14px;margin-top:16px;font-size:14px}
 .try b{color:var(--dark)}
@@ -47,7 +51,9 @@ footer{max-width:1100px;margin:10px auto 30px;padding:0 16px;font-size:12px;colo
 <body>
 <header><div class="num">App 4 · Chapter 4</div><h1>GNSS height to reduced level</h1><p>H = h − N. Fit a local geoid surface to benchmarks with both a GNSS height and a levelled height, then use it at a new point.</p></header>
 <main>
-<div class="card exbar"><h2>Worked examples in the book</h2><div class="exb"><button class="ghost" onclick="EX(0)">Example 4.1</button> <button class="ghost" onclick="EX(1)">Example 4.2</button> <button class="ghost" onclick="EX(2)">Example 4.3</button></div><p class="note" id="exnote">Press a button to load the values of a worked example in the book.</p></div>
+<div class="card exbar"><h2>Worked examples in the book</h2><div class="exb"><button class="ghost" onclick="EX(0)">Example 4.1</button> <button class="ghost" onclick="EX(1)">Example 4.2</button> <button class="ghost" onclick="EX(2)">Example 4.3</button> <button class="ghost" id="bexp" onclick="EXPLORE()">Explore: all inputs and results</button></div><p class="note" id="exnote">Change any input and every result updates. Press an example to return to its solution.</p></div>
+<div id="exspace"></div>
+<div id="explore">
 <div class="grid">
  <div class="card"><h2>Benchmarks used (illustrative)</h2><div id="bms"></div>
   <h2 style="margin-top:14px">New point</h2>
@@ -55,7 +61,7 @@ footer{max-width:1100px;margin:10px auto 30px;padding:0 16px;font-size:12px;colo
   <label>GNSS ellipsoidal height h (m)</label><input id="ph" type="number" step="any">
   <label>Constant undulation for comparison (m)</label><input id="nc" type="number" step="any" value="9.7">
   <label>Standard deviations of h and of that N (m)</label><div class="row"><input id="sh" type="number" step="any" value="0.020"><input id="sn" type="number" step="any" value="0.020"></div>
-  <button onclick="setP(37000,28500,27.818)">Point in the book</button> <button class="ghost" onclick="setP(48266.651,20890.909,12.014)">Mark S</button>
+  <button onclick="setP(37000,28500,27.818)">Point in the book</button> <button onclick="setP(48266.651,20890.909,12.014)">Mark S</button>
  </div>
  <div>
   <div class="card"><h2>Results</h2><table class="res" id="out"></table><p class="note" id="warn"></p></div>
@@ -72,6 +78,7 @@ footer{max-width:1100px;margin:10px auto 30px;padding:0 16px;font-size:12px;colo
 </div>
 <div class="try"><b>Try this.</b> Untick BM5, the benchmark with the largest residual, and watch the fit improve. Then press <i>Mark S</i>: the point lies outside the benchmarks, the surface is being extrapolated, and the app warns you. A surveyor should add benchmarks near the work, or use the official geoid model, rather than trust an extrapolated plane.</div>
 
+</div>
 </main>
 <footer>Companion app to <i>Datums, Coordinate Systems and Map Projections</i> by Yam Khoon Tor. &copy; 2026 Yam Khoon Tor. A teaching aid, provided without warranty: check results independently before use in survey work. The running-case points are illustrative.</footer>
 <script>
@@ -342,24 +349,81 @@ const SVY = GEO.SVY21, WGS = GEO.ELLIPSOIDS.WGS84, GRS = GEO.ELLIPSOIDS.GRS80, E
 /* worked-example buttons */
 function S(id, v){ $(id).value = v; }
 function Dm(id, d, m, s){ $(id + "d").value = d; $(id + "m").value = m; $(id + "s").value = s; }
-let HL = [];
+let HL = [], CUR = -1;
 function hl(){
   document.querySelectorAll("table.res tr").forEach(tr => tr.classList.remove("hl"));
   if (!HL.length) return;
-  document.querySelectorAll("table.res").forEach(tb => { let head = "";
+  document.querySelectorAll("#explore table.res").forEach(tb => { let head = "";
     tb.querySelectorAll("tr").forEach(tr => { const th = tr.querySelector("th"); if (th) { head = th.textContent.trim(); return; }
       const td = tr.querySelector("td"); if (!td) return; const lab = td.textContent.trim();
-      for (const spec of HL) { let h = "", l = spec; const k = spec.indexOf(" > "); if (k >= 0) { h = spec.slice(0, k); l = spec.slice(k + 3); }
-        if (h && !head.startsWith(h)) continue;
-        const ok = l.endsWith("…") ? lab.startsWith(l.slice(0, -1)) : lab === l;
-        if (ok) { tr.classList.add("hl"); break; } } }); });
+      for (const spec of HL) { if (match(spec, head, lab)) { tr.classList.add("hl"); break; } } }); });
 }
-function EX(i){ EXS[i][0](); const f = document.querySelector(".grid input, .grid select"); if (f) f.dispatchEvent(new Event("input", {bubbles: true}));
-  $("exnote").innerHTML = EXS[i][1]; HL = EXS[i][2] || []; hl();
+function match(spec, head, lab){ let h = "", l = spec; const k = spec.indexOf(" > "); if (k >= 0) { h = spec.slice(0, k); l = spec.slice(k + 3); }
+  if (h && !head.startsWith(h.endsWith("…") ? h.slice(0, -1) : h)) return false;
+  return l.endsWith("…") ? lab.startsWith(l.slice(0, -1)) : lab === l; }
+/* find a result row in the calculator by "Header > Row" and return its value */
+function lookup(spec){
+  if (spec.startsWith("#")) { const e = $(spec.slice(1)); return e ? e.innerHTML : "—"; }
+  for (const tb of document.querySelectorAll("#explore table.res")) { let head = "";
+    for (const tr of tb.querySelectorAll("tr")) { const th = tr.querySelector("th"); if (th) { head = th.textContent.trim(); continue; }
+      const td = [...tr.querySelectorAll("td")]; if (!td.length) continue;
+      if (match(spec, head, td[0].textContent.trim())) return td.slice(1).map(x => x.innerHTML).join(" &nbsp; "); } }
+  return "—";
+}
+/* the solution space of one worked example */
+function mirror(id){ const o = $(id); if (!o) return document.createTextNode("?");
+  let m; if (o.tagName === "SELECT") { m = o.cloneNode(true); m.value = o.value; }
+  else if (o.tagName === "TEXTAREA") { m = document.createElement("textarea"); m.rows = o.rows; m.value = o.value; m.style.cssText = o.style.cssText; }
+  else { m = document.createElement("input"); m.type = o.type === "range" ? "number" : o.type; m.step = o.step || "any"; if (o.min) m.min = o.min; if (o.max) m.max = o.max; if (o.type === "checkbox") m.checked = o.checked; else m.value = o.value; }
+  m.removeAttribute("id"); m.dataset.src = id;
+  const go = () => { if (o.type === "checkbox") o.checked = m.checked; else o.value = m.value;
+    o.dispatchEvent(new Event("input", {bubbles: true})); o.dispatchEvent(new Event("change", {bubbles: true})); setTimeout(refresh, 0); };
+  m.addEventListener("input", go); m.addEventListener("change", go); return m; }
+function buildSpace(i){
+  const sol = (typeof SOL !== "undefined" && SOL[EXS[i][4]]) || null, box = $("exspace");
+  let g = '<div class="grid"><div><div class="card"><h2>Given</h2><div id="sgiven"></div><p class="note" style="margin-top:10px">Change a value and the solution follows.</p></div>';
+  g += EXS[i][3] ? `<div class="try"><b>Try this.</b> ${EXS[i][3]}</div>` : "";
+  g += '</div><div><div class="card"><h2>Solution</h2><table class="res" id="ssol"></table></div>';
+  g += `<div class="card" style="margin-top:12px"><h2>The book's values</h2><p class="note" style="margin:0">${EXS[i][1]}</p></div></div></div>`;
+  box.innerHTML = g;
+  const gv = $("sgiven");
+  for (const grp of (sol ? sol.given : [])) {
+    const lab = document.createElement("label"); lab.innerHTML = grp[0]; gv.appendChild(lab);
+    const ids = grp[1]; const row = document.createElement("div");
+    if (ids.length === 1 && $(ids[0]) && $(ids[0]).type === "checkbox") { row.className = "chk"; const m = mirror(ids[0]); row.appendChild(m); lab.remove(); const sp = document.createElement("span"); sp.innerHTML = grp[0]; row.appendChild(sp); }
+    else { row.className = ids.length === 3 && /d$/.test(ids[0]) ? "dms" : "row"; ids.forEach(id => row.appendChild(mirror(id))); }
+    gv.appendChild(row); }
+  refresh();
+}
+function refresh(){
+  if (CUR < 0) return;
+  document.querySelectorAll("#sgiven [data-src]").forEach(m => { if (m === document.activeElement) return; const o = $(m.dataset.src); if (!o) return;
+    if (o.type === "checkbox") m.checked = o.checked; else if (m.value !== o.value) m.value = o.value; });
+  const sol = (typeof SOL !== "undefined" && SOL[EXS[CUR][4]]) || null, t = $("ssol"); if (!t || !sol) return;
+  t.innerHTML = sol.items.map(it => it[0] === "#" ? `<tr><th colspan="2">${it[1]}</th></tr>` : it[1].startsWith("#") ?
+    `<tr${it[0] === "!" ? ' class="hl"' : ""}><td colspan="2" class="txt"><b>${it[2]}</b><br>${lookup(it[1])}</td></tr>` :
+    `<tr${it[0] === "!" ? ' class="hl"' : ""}><td>${it[2]}</td><td class="v">${lookup(it[1])}</td></tr>`).join("");
+}
+function EX(i){
+  CUR = i; EXS[i][0](); const f = document.querySelector("#explore input, #explore select"); if (f) f.dispatchEvent(new Event("input", {bubbles: true}));
+  HL = EXS[i][2] || []; hl();
+  document.querySelectorAll("button.on").forEach(b => b.classList.remove("on"));
   document.querySelectorAll(".exb button").forEach((b, j) => b.classList.toggle("on", j === i));
-  const r = document.querySelector("table.res tr.hl"); if (r && window.innerWidth < 760) r.scrollIntoView({behavior: "smooth", block: "center"}); }
-document.addEventListener("input", () => setTimeout(hl, 0));
-document.addEventListener("change", () => setTimeout(hl, 0));
+  $("explore").style.display = "none"; $("exspace").style.display = ""; $("exnote").style.display = "none";
+  buildSpace(i);
+}
+function EXPLORE(){
+  CUR = -1; HL = []; hl(); $("explore").style.display = ""; $("exspace").style.display = "none"; $("exnote").style.display = "";
+  document.querySelectorAll(".exb button").forEach(b => b.classList.toggle("on", b.id === "bexp"));
+}
+document.addEventListener("input", () => setTimeout(() => { hl(); refresh(); }, 0));
+document.addEventListener("change", () => setTimeout(() => { hl(); refresh(); }, 0));
+/* preset buttons in the calculator: the one pressed shows as selected; typing a new value clears it */
+const PRESETS = () => [...document.querySelectorAll("#explore button")];
+document.addEventListener("click", e => { const b = e.target.closest("button"); if (!b || !b.closest("#explore")) return;
+  PRESETS().forEach(x => x.classList.remove("on")); b.classList.add("on"); });
+document.addEventListener("input", e => { if (e.isTrusted && e.target.closest("#explore")) PRESETS().forEach(x => x.classList.remove("on")); }, true);
+window.addEventListener("load", () => { const p = PRESETS(); if (p.length) p[0].classList.add("on"); if (typeof EXS !== "undefined" && EXS.length) EX(0); });
 
 /* small user-interface helpers */
 const $ = id => document.getElementById(id);
@@ -413,9 +477,10 @@ function c42(){ const d1 = val("bd1") - val("bp1"), d2 = val("bd2") - val("bp2")
     ["Spread", F(Math.abs(d1 - d2)) + " m"], ["Corrected reduced level", F(val("bn") - m) + " m"]]); }
 document.addEventListener("input", c42); c42();
 
-const EXS = [[function(){setP(37000,28500,37.412); S("nc",9.656); S("sh",0.020); S("sn",0.020);}, 'h = 37.412 m (σ 0.020 m) and N = 9.656 m (σ 0.020 m) give H = 27.756 m with σ_H = 0.028 m, as in Example 4.1.', ['With constant N…', 'Standard deviation of that H']],
-[function(){S("bd1",12.447); S("bp1",12.431); S("bd2",9.862); S("bp2",9.850); S("bn",15.305);}, 'Two benchmarks of Example 4.2: mean difference +0.014 m, spread 0.004 m, corrected level 15.291 m. See the card <b>Local correction from two benchmarks</b>.', ['Difference at A', 'Difference at B', 'Mean difference', 'Spread', 'Corrected reduced level']],
-[function(){document.querySelectorAll("#bms input[type=checkbox]").forEach(c => c.checked = true); setP(37000,28500,27.818);}, 'All eight benchmarks of Table 4.2 ticked; the new point at N 37 000, E 28 500, h 27.818 m. Compare the plane coefficients, the standard deviation of fit and H with Example 4.3. Example 4.2 is a hand computation from two benchmarks.', ['c0', 'c1', 'c2', 'Standard deviation of fit', 'Undulation N', 'Reduced level H = h − N']]];
+const EXS = [[function(){setP(37000,28500,37.412); S("nc",9.656); S("sh",0.020); S("sn",0.020);}, 'h = 37.412 m (σ 0.020 m) and N = 9.656 m (σ 0.020 m) give H = 27.756 m with σ_H = 0.028 m, as in Example 4.1.', ['With constant N…', 'Standard deviation of that H'], 'Change the standard deviation of N from 0.020 to 0.050 m: σ_H is now governed by the geoid model, not by GNSS, so a better receiver would not help.', 'Example 4.1'],
+[function(){S("bd1",12.447); S("bp1",12.431); S("bd2",9.862); S("bp2",9.850); S("bn",15.305);}, 'Two benchmarks: differences +0.016 and +0.012 m, mean +0.014 m, spread 0.004 m, corrected level 15.291 m (Example 4.2).', ['Difference at A', 'Difference at B', 'Mean difference', 'Spread', 'Corrected reduced level'], "Lower benchmark A's published level by 0.020 m: the spread grows from 4 to 24 mm, the sign that one benchmark is suspect and a third is needed.", 'Example 4.2'],
+[function(){document.querySelectorAll("#bms input[type=checkbox]").forEach(c => c.checked = true); setP(37000,28500,27.818);}, 'All eight benchmarks of Table 4.2 ticked; the new point at N 37 000, E 28 500, h 27.818 m. Compare the plane coefficients, the standard deviation of fit and H with Example 4.3. Example 4.2 is a hand computation from two benchmarks.', ['c0', 'c1', 'c2', 'Standard deviation of fit', 'Undulation N', 'Reduced level H = h − N'], 'Untick BM5, the benchmark with the largest residual, and watch the fit change. Then enter the position of S (N 48 266.651, E 20 890.909): it lies outside the benchmarks, so the surface is being extrapolated and N there is a guess.', 'Example 4.3']];
+const SOL = {"Example 4.1": {"given": [["GNSS ellipsoidal height h (m)", ["ph"]], ["Geoid undulation N (m)", ["nc"]], ["Standard deviations of h and of N (m)", ["sh", "sn"]]], "items": [["#", "Reduced level", ""], ["!", "With constant N…", "H = h − N"], ["#", "Precision", ""], ["!", "Standard deviation of that H", "σ_H = √(σ_h² + σ_N²)"]]}, "Example 4.2": {"given": [["Benchmark A: derived, published (m)", ["bd1", "bp1"]], ["Benchmark B: derived, published (m)", ["bd2", "bp2"]], ["New point: derived reduced level (m)", ["bn"]]], "items": [["#", "Step 1. Derived minus published at each benchmark", ""], ["!", "Difference at A", "Difference at A"], ["!", "Difference at B", "Difference at B"], ["#", "Step 2. The local correction", ""], ["!", "Mean difference", "Mean difference"], ["!", "Spread", "Spread (agreement of the two)"], ["#", "Step 3. Corrected level of the new point", ""], ["!", "Corrected reduced level", "Corrected reduced level"]]}, "Example 4.3": {"given": [["BM1", ["u0"]], ["BM2", ["u1"]], ["BM3", ["u2"]], ["BM4", ["u3"]], ["BM5", ["u4"]], ["BM6", ["u5"]], ["BM7", ["u6"]], ["BM8", ["u7"]], ["New point: SVY21 northing, easting (m)", ["pn", "pe"]], ["New point: ellipsoidal height h (m)", ["ph"]]], "items": [["#", "Step 1. Least-squares surface N = c₀ + c₁Δn + c₂Δe", ""], ["!", "c0", "c₀"], ["!", "c1", "c₁"], ["!", "c2", "c₂"], ["!", "Standard deviation of fit", "Standard deviation of fit"], ["#", "Step 2. At the new point", ""], ["!", "Undulation N", "Undulation N"], ["!", "Reduced level H = h − N", "Reduced level H = h − N"]]}};
 
 </script>
 </body>

@@ -32,8 +32,12 @@ table.res th{font:600 12px system-ui,sans-serif;color:var(--quiet)}
 table.res td.v{text-align:right;white-space:nowrap}
 .note{font-size:13.5px;color:var(--quiet)}
 .exbar{margin-bottom:14px}.exb button{margin:0 6px 6px 0}.exb button.on{background:var(--accent);color:#fff}
+button:not(.on){background:transparent;color:var(--accent)}button.on{background:var(--accent);color:#fff}
 #exnote{margin:4px 0 0}
 table.res tr.hl td{background:#ffe9a8;font-weight:700}
+table.res td.txt{font:14px/1.45 Georgia,serif;white-space:normal}table.res td.txt p{margin:4px 0}
+#exspace .grid{grid-template-columns:minmax(260px,360px) 1fr}#sgiven textarea{width:100%;font:12px ui-monospace,monospace}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) table.res tr.hl td{background:#4a3b0c}}
 table.res tr.hl td:first-child{box-shadow:inset 4px 0 0 #d4a017}
 .try{background:var(--pale);border-radius:10px;padding:10px 14px;margin-top:16px;font-size:14px}
 .try b{color:var(--dark)}
@@ -47,12 +51,14 @@ footer{max-width:1100px;margin:10px auto 30px;padding:0 16px;font-size:12px;colo
 <body>
 <header><div class="num">App 2 · Chapter 2</div><h1>The ellipsoid and its curvature</h1><p>How the size and flattening of the ellipsoid set the length of a second of arc, wherever the work is.</p></header>
 <main>
-<div class="card exbar"><h2>Worked examples in the book</h2><div class="exb"><button class="ghost" onclick="EX(0)">Example 2.1</button> <button class="ghost" onclick="EX(1)">Example 2.2</button> <button class="ghost" onclick="EX(2)">Example 2.3</button></div><p class="note" id="exnote">Press a button to load the values of a worked example in the book.</p></div>
+<div class="card exbar"><h2>Worked examples in the book</h2><div class="exb"><button class="ghost" onclick="EX(0)">Example 2.1</button> <button class="ghost" onclick="EX(1)">Example 2.2</button> <button class="ghost" onclick="EX(2)">Example 2.3</button> <button class="ghost" id="bexp" onclick="EXPLORE()">Explore: all inputs and results</button></div><p class="note" id="exnote">Change any input and every result updates. Press an example to return to its solution.</p></div>
+<div id="exspace"></div>
+<div id="explore">
 <div class="grid">
  <div class="card"><h2>Ellipsoid and place</h2>
   <label>Ellipsoid</label><select id="ell"><option>WGS84</option><option>GRS80</option><option>Everest 1830 (Modified)</option></select>
   <label>Latitude (degrees): <b id="latv"></b></label><input id="lat" type="range" min="-89" max="89" step="any" value="1.45">
-  <label>Exaggerate the flattening in the drawing &times;<b id="exv"></b></label><input id="ex" type="range" min="1" max="60" step="1" value="25">
+  <input id="ex" type="hidden" value="25"><b id="exv" style="display:none"></b>
   <label>A short line: Δφ and Δλ (seconds of arc)</label><div class="row"><input id="dphi" type="number" step="any" value="0"><input id="dlam" type="number" step="any" value="0"></div>
   <button onclick="$('lat').value=1.4528;calc()">Mark S, 1° 27' N</button>
  </div>
@@ -63,6 +69,7 @@ footer{max-width:1100px;margin:10px auto 30px;padding:0 16px;font-size:12px;colo
 </div>
 <div class="try"><b>Try this.</b> Move the latitude from the equator to the pole and watch the two radii: M grows from 6 335 km to 6 400 km, so a second of latitude is about 1% longer near the poles. At the mark S a second of latitude is 30.715 m and a second of longitude 30.913 m. Change to the Everest ellipsoid: the radii shrink by about 800 m, which is why the old Kertau datum used different numbers.</div>
 
+</div>
 </main>
 <footer>Companion app to <i>Datums, Coordinate Systems and Map Projections</i> by Yam Khoon Tor. &copy; 2026 Yam Khoon Tor. A teaching aid, provided without warranty: check results independently before use in survey work. The running-case points are illustrative.</footer>
 <script>
@@ -333,24 +340,81 @@ const SVY = GEO.SVY21, WGS = GEO.ELLIPSOIDS.WGS84, GRS = GEO.ELLIPSOIDS.GRS80, E
 /* worked-example buttons */
 function S(id, v){ $(id).value = v; }
 function Dm(id, d, m, s){ $(id + "d").value = d; $(id + "m").value = m; $(id + "s").value = s; }
-let HL = [];
+let HL = [], CUR = -1;
 function hl(){
   document.querySelectorAll("table.res tr").forEach(tr => tr.classList.remove("hl"));
   if (!HL.length) return;
-  document.querySelectorAll("table.res").forEach(tb => { let head = "";
+  document.querySelectorAll("#explore table.res").forEach(tb => { let head = "";
     tb.querySelectorAll("tr").forEach(tr => { const th = tr.querySelector("th"); if (th) { head = th.textContent.trim(); return; }
       const td = tr.querySelector("td"); if (!td) return; const lab = td.textContent.trim();
-      for (const spec of HL) { let h = "", l = spec; const k = spec.indexOf(" > "); if (k >= 0) { h = spec.slice(0, k); l = spec.slice(k + 3); }
-        if (h && !head.startsWith(h)) continue;
-        const ok = l.endsWith("…") ? lab.startsWith(l.slice(0, -1)) : lab === l;
-        if (ok) { tr.classList.add("hl"); break; } } }); });
+      for (const spec of HL) { if (match(spec, head, lab)) { tr.classList.add("hl"); break; } } }); });
 }
-function EX(i){ EXS[i][0](); const f = document.querySelector(".grid input, .grid select"); if (f) f.dispatchEvent(new Event("input", {bubbles: true}));
-  $("exnote").innerHTML = EXS[i][1]; HL = EXS[i][2] || []; hl();
+function match(spec, head, lab){ let h = "", l = spec; const k = spec.indexOf(" > "); if (k >= 0) { h = spec.slice(0, k); l = spec.slice(k + 3); }
+  if (h && !head.startsWith(h.endsWith("…") ? h.slice(0, -1) : h)) return false;
+  return l.endsWith("…") ? lab.startsWith(l.slice(0, -1)) : lab === l; }
+/* find a result row in the calculator by "Header > Row" and return its value */
+function lookup(spec){
+  if (spec.startsWith("#")) { const e = $(spec.slice(1)); return e ? e.innerHTML : "—"; }
+  for (const tb of document.querySelectorAll("#explore table.res")) { let head = "";
+    for (const tr of tb.querySelectorAll("tr")) { const th = tr.querySelector("th"); if (th) { head = th.textContent.trim(); continue; }
+      const td = [...tr.querySelectorAll("td")]; if (!td.length) continue;
+      if (match(spec, head, td[0].textContent.trim())) return td.slice(1).map(x => x.innerHTML).join(" &nbsp; "); } }
+  return "—";
+}
+/* the solution space of one worked example */
+function mirror(id){ const o = $(id); if (!o) return document.createTextNode("?");
+  let m; if (o.tagName === "SELECT") { m = o.cloneNode(true); m.value = o.value; }
+  else if (o.tagName === "TEXTAREA") { m = document.createElement("textarea"); m.rows = o.rows; m.value = o.value; m.style.cssText = o.style.cssText; }
+  else { m = document.createElement("input"); m.type = o.type === "range" ? "number" : o.type; m.step = o.step || "any"; if (o.min) m.min = o.min; if (o.max) m.max = o.max; if (o.type === "checkbox") m.checked = o.checked; else m.value = o.value; }
+  m.removeAttribute("id"); m.dataset.src = id;
+  const go = () => { if (o.type === "checkbox") o.checked = m.checked; else o.value = m.value;
+    o.dispatchEvent(new Event("input", {bubbles: true})); o.dispatchEvent(new Event("change", {bubbles: true})); setTimeout(refresh, 0); };
+  m.addEventListener("input", go); m.addEventListener("change", go); return m; }
+function buildSpace(i){
+  const sol = (typeof SOL !== "undefined" && SOL[EXS[i][4]]) || null, box = $("exspace");
+  let g = '<div class="grid"><div><div class="card"><h2>Given</h2><div id="sgiven"></div><p class="note" style="margin-top:10px">Change a value and the solution follows.</p></div>';
+  g += EXS[i][3] ? `<div class="try"><b>Try this.</b> ${EXS[i][3]}</div>` : "";
+  g += '</div><div><div class="card"><h2>Solution</h2><table class="res" id="ssol"></table></div>';
+  g += `<div class="card" style="margin-top:12px"><h2>The book's values</h2><p class="note" style="margin:0">${EXS[i][1]}</p></div></div></div>`;
+  box.innerHTML = g;
+  const gv = $("sgiven");
+  for (const grp of (sol ? sol.given : [])) {
+    const lab = document.createElement("label"); lab.innerHTML = grp[0]; gv.appendChild(lab);
+    const ids = grp[1]; const row = document.createElement("div");
+    if (ids.length === 1 && $(ids[0]) && $(ids[0]).type === "checkbox") { row.className = "chk"; const m = mirror(ids[0]); row.appendChild(m); lab.remove(); const sp = document.createElement("span"); sp.innerHTML = grp[0]; row.appendChild(sp); }
+    else { row.className = ids.length === 3 && /d$/.test(ids[0]) ? "dms" : "row"; ids.forEach(id => row.appendChild(mirror(id))); }
+    gv.appendChild(row); }
+  refresh();
+}
+function refresh(){
+  if (CUR < 0) return;
+  document.querySelectorAll("#sgiven [data-src]").forEach(m => { if (m === document.activeElement) return; const o = $(m.dataset.src); if (!o) return;
+    if (o.type === "checkbox") m.checked = o.checked; else if (m.value !== o.value) m.value = o.value; });
+  const sol = (typeof SOL !== "undefined" && SOL[EXS[CUR][4]]) || null, t = $("ssol"); if (!t || !sol) return;
+  t.innerHTML = sol.items.map(it => it[0] === "#" ? `<tr><th colspan="2">${it[1]}</th></tr>` : it[1].startsWith("#") ?
+    `<tr${it[0] === "!" ? ' class="hl"' : ""}><td colspan="2" class="txt"><b>${it[2]}</b><br>${lookup(it[1])}</td></tr>` :
+    `<tr${it[0] === "!" ? ' class="hl"' : ""}><td>${it[2]}</td><td class="v">${lookup(it[1])}</td></tr>`).join("");
+}
+function EX(i){
+  CUR = i; EXS[i][0](); const f = document.querySelector("#explore input, #explore select"); if (f) f.dispatchEvent(new Event("input", {bubbles: true}));
+  HL = EXS[i][2] || []; hl();
+  document.querySelectorAll("button.on").forEach(b => b.classList.remove("on"));
   document.querySelectorAll(".exb button").forEach((b, j) => b.classList.toggle("on", j === i));
-  const r = document.querySelector("table.res tr.hl"); if (r && window.innerWidth < 760) r.scrollIntoView({behavior: "smooth", block: "center"}); }
-document.addEventListener("input", () => setTimeout(hl, 0));
-document.addEventListener("change", () => setTimeout(hl, 0));
+  $("explore").style.display = "none"; $("exspace").style.display = ""; $("exnote").style.display = "none";
+  buildSpace(i);
+}
+function EXPLORE(){
+  CUR = -1; HL = []; hl(); $("explore").style.display = ""; $("exspace").style.display = "none"; $("exnote").style.display = "";
+  document.querySelectorAll(".exb button").forEach(b => b.classList.toggle("on", b.id === "bexp"));
+}
+document.addEventListener("input", () => setTimeout(() => { hl(); refresh(); }, 0));
+document.addEventListener("change", () => setTimeout(() => { hl(); refresh(); }, 0));
+/* preset buttons in the calculator: the one pressed shows as selected; typing a new value clears it */
+const PRESETS = () => [...document.querySelectorAll("#explore button")];
+document.addEventListener("click", e => { const b = e.target.closest("button"); if (!b || !b.closest("#explore")) return;
+  PRESETS().forEach(x => x.classList.remove("on")); b.classList.add("on"); });
+document.addEventListener("input", e => { if (e.isTrusted && e.target.closest("#explore")) PRESETS().forEach(x => x.classList.remove("on")); }, true);
+window.addEventListener("load", () => { const p = PRESETS(); if (p.length) p[0].classList.add("on"); if (typeof EXS !== "undefined" && EXS.length) EX(0); });
 
 /* small user-interface helpers */
 const $ = id => document.getElementById(id);
@@ -401,9 +465,10 @@ function calc(){
 }
 wire(calc);
 
-const EXS = [[function(){S("ell","WGS84"); S("lat",1.366666667); S("dphi",0); S("dlam",0);}, 'WGS84. Compare <b>b, e², e′²</b> and <b>n</b> with the table of Example 2.1: b = 6 356 752.3142 m.', ['Semi-minor axis b', 'Flattening 1/f', 'e²', 'e′²', 'n']],
-[function(){S("ell","WGS84"); S("lat",1.366666667); S("dphi",0); S("dlam",0);}, 'WGS84 at the SVY21 origin latitude, 1° 22′ 00″. Compare <b>M, ν</b> and <b>R</b> with Example 2.2.', ['Meridian radius M', 'Prime vertical radius ν', 'Mean radius R = √(Mν)']],
-[function(){S("ell","WGS84"); S("lat",1.459027778); S("dphi",44.99197); S("dlam",15.02989);}, 'S to J: Δφ = 44.991 97″, Δλ = 15.029 89″ at the mean latitude 1° 27′ 32.5″. The short-line rows give the north and east components and the span of Example 2.3.', ['One second of latitude', 'One second of longitude', 'north component', 'east component', 'length']]];
+const EXS = [[function(){S("ell","WGS84"); S("lat",1.366666667); S("dphi",0); S("dlam",0);}, 'WGS84: b = 6 356 752.3142 m, 1/f = 298.257 223 563, e² = 0.006 694 379 990, e′² = 0.006 739 496 742, n = 0.001 679 220 386 (Example 2.1).', ['Semi-minor axis b', 'Flattening 1/f', 'e²', 'e′²', 'n'], 'Choose GRS80 in the ellipsoid list: b, e² and n change only in the last digits, because GRS80 and WGS84 differ only in the seventh decimal of 1/f. Choose an old ellipsoid such as Everest and the change is obvious.', 'Example 2.1'],
+[function(){S("ell","WGS84"); S("lat",1.366666667); S("dphi",0); S("dlam",0);}, 'At 1° 22′ 00″ on WGS84: M = 6 335 475.516 m, ν = 6 378 149.144 m, R = 6 356 776.521 m (Example 2.2).', ['Meridian radius M', 'Prime vertical radius ν', 'Mean radius R = √(Mν)'], 'Move the latitude to 45° and then towards 90°: M rises towards ν, and at the pole the two are equal. A second of latitude is about 1% longer near the poles than at the equator.', 'Example 2.2'],
+[function(){S("ell","WGS84"); S("lat",1.459027778); S("dphi",44.99197); S("dlam",15.02989);}, 'S to J: Δφ = 44.991 97″, Δλ = 15.029 89″ at the mean latitude 1° 27′ 32.5″; north 1 381.941 m, east 464.606 m, span 1 457.950 m (Example 2.3).', ['One second of latitude', 'One second of longitude', 'north component', 'east component', 'length'], 'Set Δλ to 0: the span becomes the north component alone. Then double both Δφ and Δλ: the span doubles, as it should over a few kilometres.', 'Example 2.3']];
+const SOL = {"Example 2.1": {"given": [["Ellipsoid (defining a and 1/f)", ["ell"]]], "items": [["#", "Defining constants", ""], ["r", "Semi-major axis a", "a"], ["#", "Derived constants", ""], ["!", "Semi-minor axis b", "b = a(1 − f)"], ["!", "Flattening 1/f", "1/f (as defined, to 6 decimals)"], ["!", "e²", "e² = f(2 − f)"], ["!", "e′²", "e′² = e² / (1 − e²)"], ["!", "n", "n = f / (2 − f)"]]}, "Example 2.2": {"given": [["Ellipsoid", ["ell"]], ["Latitude of S (decimal degrees)", ["lat"]]], "items": [["#", "Radii of curvature at the latitude", ""], ["!", "Meridian radius M", "M = a(1 − e²) / (1 − e² sin²φ)^3/2"], ["!", "Prime vertical radius ν", "ν = a / (1 − e² sin²φ)^1/2"], ["!", "Mean radius R = √(Mν)", "R = √(Mν)"]]}, "Example 2.3": {"given": [["Ellipsoid", ["ell"]], ["Mean latitude of S and J (decimal degrees)", ["lat"]], ["Δφ (seconds of arc)", ["dphi"]], ["Δλ (seconds of arc)", ["dlam"]]], "items": [["#", "Step 1. Radii at the mean latitude", ""], ["r", "Meridian radius M", "M"], ["r", "Prime vertical radius ν", "ν"], ["#", "Step 2. Length of one second of arc", ""], ["!", "One second of latitude", "M × 1″ in radians"], ["!", "One second of longitude", "ν cos φ × 1″ in radians"], ["#", "Step 3. Components and span", ""], ["!", "The short line, at this latitude > north component", "North component = Δφ × (one second of latitude)"], ["!", "The short line, at this latitude > east component", "East component = Δλ × (one second of longitude)"], ["!", "The short line, at this latitude > length", "Span = √(north² + east²)"]]}};
 
 </script>
 </body>

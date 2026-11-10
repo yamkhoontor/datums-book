@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Why don't my coordinates agree? A diagnostic aid</title>
+<title>Why don't my coordinates agree? Reading a mismatch</title>
 <style>
 :root{--ink:#16202b;--quiet:#55606d;--line:#c9d3de;--pale:#eef3f8;--paper:#ffffff;--accent:#1f5fa8;--dark:#1f3b5c;--warn:#b42318;--ok:#1a7f37;--orange:#c2410c}
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--ink:#e6edf3;--quiet:#9aa7b4;--line:#33414f;--pale:#1b2836;--paper:#0f1720;--accent:#6ea8ff;--dark:#9cc3f0;--warn:#ff7b72;--ok:#56d364;--orange:#f0883e}}
@@ -32,8 +32,12 @@ table.res th{font:600 12px system-ui,sans-serif;color:var(--quiet)}
 table.res td.v{text-align:right;white-space:nowrap}
 .note{font-size:13.5px;color:var(--quiet)}
 .exbar{margin-bottom:14px}.exb button{margin:0 6px 6px 0}.exb button.on{background:var(--accent);color:#fff}
+button:not(.on){background:transparent;color:var(--accent)}button.on{background:var(--accent);color:#fff}
 #exnote{margin:4px 0 0}
 table.res tr.hl td{background:#ffe9a8;font-weight:700}
+table.res td.txt{font:14px/1.45 Georgia,serif;white-space:normal}table.res td.txt p{margin:4px 0}
+#exspace .grid{grid-template-columns:minmax(260px,360px) 1fr}#sgiven textarea{width:100%;font:12px ui-monospace,monospace}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) table.res tr.hl td{background:#4a3b0c}}
 table.res tr.hl td:first-child{box-shadow:inset 4px 0 0 #d4a017}
 .try{background:var(--pale);border-radius:10px;padding:10px 14px;margin-top:16px;font-size:14px}
 .try b{color:var(--dark)}
@@ -45,26 +49,29 @@ footer{max-width:1100px;margin:10px auto 30px;padding:0 16px;font-size:12px;colo
 </style>
 </head>
 <body>
-<header><div class="num">App 16 · Chapter 16</div><h1>Why don't my coordinates agree? A diagnostic aid</h1><p>Compare the coordinates you expected for a mark with those you received. The size and direction of the difference usually tell you the cause.</p></header>
+<header><div class="num">App 16 · Chapter 16</div><h1>Why don't my coordinates agree? Reading a mismatch</h1><p>Figure 16.1 as a calculator: enter the coordinates you expected and those you received; the size and direction of the difference point to the likely cause.</p></header>
 <main>
+<div class="card exbar"><h2>Case studies in the book</h2><div class="exb"><button class="ghost" onclick="EX(0)">Case 16.2</button> <button class="ghost" onclick="EX(1)">Case 16.3</button> <button class="ghost" onclick="EX(2)">Case 16.4</button> <button class="ghost" onclick="EX(3)">Case 16.5</button> <button class="ghost" id="bexp" onclick="EXPLORE()">Explore: all inputs and results</button></div><p class="note" id="exnote">Change any input and every result updates. Press an example to return to its solution.</p></div>
+<div id="exspace"></div>
+<div id="explore">
 <div class="grid">
  <div class="card"><h2>Expected (SVY21 grid, SHD height)</h2>
   <label>Northing, easting (m)</label><div class="row"><input id="n0" type="number" step="any"><input id="e0" type="number" step="any"></div>
   <label>Reduced level (m)</label><input id="h0" type="number" step="any">
   <h2 style="margin-top:14px">Received</h2>
-  <label>First value, second value (m)</label><div class="row"><input id="n1" type="number" step="any"><input id="e1" type="number" step="any"></div>
+  <label>First value, second value (m), as supplied</label><div class="row"><input id="n1" type="number" step="any"><input id="e1" type="number" step="any"></div>
   <label>Height (m)</label><input id="h1" type="number" step="any">
-  <p class="note">Load a situation from Chapter 16:</p>
-  <button onclick="sc(0)">Contractor's PPP result</button> <button class="ghost" onclick="sc(1)">Point from a 1970s plan</button>
-  <button class="ghost" onclick="sc(2)">Spreadsheet from GIS</button> <button class="ghost" onclick="sc(3)">GNSS height</button> <button class="ghost" onclick="sc(4)">Designer's file</button>
+  <p class="note">Other rows of Figure 16.1:</p>
+  <button onclick="sc(0)">Northing and easting swapped</button> <button onclick="sc(1)">A file on UTM 48N</button>
+  <button onclick="sc(2)">Kertau values read as modern</button> <button onclick="sc(3)">Ellipsoidal height as a level</button>
  </div>
  <div>
   <div class="card"><h2>Difference and likely cause</h2><table class="res" id="out"></table><div id="diag" style="margin-top:10px"></div></div>
-  <svg id="fig" style="display:none"></svg>
  </div>
 </div>
-<div class="try"><b>Try this.</b> Load each situation in turn and read the diagnosis. Then make up your own: a difference of 0.6 m towards the east-south-east is about twenty years of plate motion; 190 m mostly east–west is the old Kertau datum; nearly 10 m in height alone is the geoid. These rules of thumb find most problems in minutes, but always confirm the cause with the supplier of the data.</div>
+<div class="try"><b>Try this.</b> Load each case study in turn and read the diagnosis beside the book's account of it. Then make up your own: 0.6 m towards the east-south-east is about twenty years of plate motion; 190 m mostly east–west is the old Kertau datum; nearly 10 m in height alone is the geoid. The rules find most problems in minutes, but a diagnosis stays a hypothesis until a known mark confirms it.</div>
 
+</div>
 </main>
 <footer>Companion app to <i>Datums, Coordinate Systems and Map Projections</i> by Yam Khoon Tor. &copy; 2026 Yam Khoon Tor. A teaching aid, provided without warranty: check results independently before use in survey work. The running-case points are illustrative.</footer>
 <script>
@@ -335,24 +342,81 @@ const SVY = GEO.SVY21, WGS = GEO.ELLIPSOIDS.WGS84, GRS = GEO.ELLIPSOIDS.GRS80, E
 /* worked-example buttons */
 function S(id, v){ $(id).value = v; }
 function Dm(id, d, m, s){ $(id + "d").value = d; $(id + "m").value = m; $(id + "s").value = s; }
-let HL = [];
+let HL = [], CUR = -1;
 function hl(){
   document.querySelectorAll("table.res tr").forEach(tr => tr.classList.remove("hl"));
   if (!HL.length) return;
-  document.querySelectorAll("table.res").forEach(tb => { let head = "";
+  document.querySelectorAll("#explore table.res").forEach(tb => { let head = "";
     tb.querySelectorAll("tr").forEach(tr => { const th = tr.querySelector("th"); if (th) { head = th.textContent.trim(); return; }
       const td = tr.querySelector("td"); if (!td) return; const lab = td.textContent.trim();
-      for (const spec of HL) { let h = "", l = spec; const k = spec.indexOf(" > "); if (k >= 0) { h = spec.slice(0, k); l = spec.slice(k + 3); }
-        if (h && !head.startsWith(h)) continue;
-        const ok = l.endsWith("…") ? lab.startsWith(l.slice(0, -1)) : lab === l;
-        if (ok) { tr.classList.add("hl"); break; } } }); });
+      for (const spec of HL) { if (match(spec, head, lab)) { tr.classList.add("hl"); break; } } }); });
 }
-function EX(i){ EXS[i][0](); const f = document.querySelector(".grid input, .grid select"); if (f) f.dispatchEvent(new Event("input", {bubbles: true}));
-  $("exnote").innerHTML = EXS[i][1]; HL = EXS[i][2] || []; hl();
+function match(spec, head, lab){ let h = "", l = spec; const k = spec.indexOf(" > "); if (k >= 0) { h = spec.slice(0, k); l = spec.slice(k + 3); }
+  if (h && !head.startsWith(h.endsWith("…") ? h.slice(0, -1) : h)) return false;
+  return l.endsWith("…") ? lab.startsWith(l.slice(0, -1)) : lab === l; }
+/* find a result row in the calculator by "Header > Row" and return its value */
+function lookup(spec){
+  if (spec.startsWith("#")) { const e = $(spec.slice(1)); return e ? e.innerHTML : "—"; }
+  for (const tb of document.querySelectorAll("#explore table.res")) { let head = "";
+    for (const tr of tb.querySelectorAll("tr")) { const th = tr.querySelector("th"); if (th) { head = th.textContent.trim(); continue; }
+      const td = [...tr.querySelectorAll("td")]; if (!td.length) continue;
+      if (match(spec, head, td[0].textContent.trim())) return td.slice(1).map(x => x.innerHTML).join(" &nbsp; "); } }
+  return "—";
+}
+/* the solution space of one worked example */
+function mirror(id){ const o = $(id); if (!o) return document.createTextNode("?");
+  let m; if (o.tagName === "SELECT") { m = o.cloneNode(true); m.value = o.value; }
+  else if (o.tagName === "TEXTAREA") { m = document.createElement("textarea"); m.rows = o.rows; m.value = o.value; m.style.cssText = o.style.cssText; }
+  else { m = document.createElement("input"); m.type = o.type === "range" ? "number" : o.type; m.step = o.step || "any"; if (o.min) m.min = o.min; if (o.max) m.max = o.max; if (o.type === "checkbox") m.checked = o.checked; else m.value = o.value; }
+  m.removeAttribute("id"); m.dataset.src = id;
+  const go = () => { if (o.type === "checkbox") o.checked = m.checked; else o.value = m.value;
+    o.dispatchEvent(new Event("input", {bubbles: true})); o.dispatchEvent(new Event("change", {bubbles: true})); setTimeout(refresh, 0); };
+  m.addEventListener("input", go); m.addEventListener("change", go); return m; }
+function buildSpace(i){
+  const sol = (typeof SOL !== "undefined" && SOL[EXS[i][4]]) || null, box = $("exspace");
+  let g = '<div class="grid"><div><div class="card"><h2>Given</h2><div id="sgiven"></div><p class="note" style="margin-top:10px">Change a value and the solution follows.</p></div>';
+  g += EXS[i][3] ? `<div class="try"><b>Try this.</b> ${EXS[i][3]}</div>` : "";
+  g += '</div><div><div class="card"><h2>Solution</h2><table class="res" id="ssol"></table></div>';
+  g += `<div class="card" style="margin-top:12px"><h2>The book's values</h2><p class="note" style="margin:0">${EXS[i][1]}</p></div></div></div>`;
+  box.innerHTML = g;
+  const gv = $("sgiven");
+  for (const grp of (sol ? sol.given : [])) {
+    const lab = document.createElement("label"); lab.innerHTML = grp[0]; gv.appendChild(lab);
+    const ids = grp[1]; const row = document.createElement("div");
+    if (ids.length === 1 && $(ids[0]) && $(ids[0]).type === "checkbox") { row.className = "chk"; const m = mirror(ids[0]); row.appendChild(m); lab.remove(); const sp = document.createElement("span"); sp.innerHTML = grp[0]; row.appendChild(sp); }
+    else { row.className = ids.length === 3 && /d$/.test(ids[0]) ? "dms" : "row"; ids.forEach(id => row.appendChild(mirror(id))); }
+    gv.appendChild(row); }
+  refresh();
+}
+function refresh(){
+  if (CUR < 0) return;
+  document.querySelectorAll("#sgiven [data-src]").forEach(m => { if (m === document.activeElement) return; const o = $(m.dataset.src); if (!o) return;
+    if (o.type === "checkbox") m.checked = o.checked; else if (m.value !== o.value) m.value = o.value; });
+  const sol = (typeof SOL !== "undefined" && SOL[EXS[CUR][4]]) || null, t = $("ssol"); if (!t || !sol) return;
+  t.innerHTML = sol.items.map(it => it[0] === "#" ? `<tr><th colspan="2">${it[1]}</th></tr>` : it[1].startsWith("#") ?
+    `<tr${it[0] === "!" ? ' class="hl"' : ""}><td colspan="2" class="txt"><b>${it[2]}</b><br>${lookup(it[1])}</td></tr>` :
+    `<tr${it[0] === "!" ? ' class="hl"' : ""}><td>${it[2]}</td><td class="v">${lookup(it[1])}</td></tr>`).join("");
+}
+function EX(i){
+  CUR = i; EXS[i][0](); const f = document.querySelector("#explore input, #explore select"); if (f) f.dispatchEvent(new Event("input", {bubbles: true}));
+  HL = EXS[i][2] || []; hl();
+  document.querySelectorAll("button.on").forEach(b => b.classList.remove("on"));
   document.querySelectorAll(".exb button").forEach((b, j) => b.classList.toggle("on", j === i));
-  const r = document.querySelector("table.res tr.hl"); if (r && window.innerWidth < 760) r.scrollIntoView({behavior: "smooth", block: "center"}); }
-document.addEventListener("input", () => setTimeout(hl, 0));
-document.addEventListener("change", () => setTimeout(hl, 0));
+  $("explore").style.display = "none"; $("exspace").style.display = ""; $("exnote").style.display = "none";
+  buildSpace(i);
+}
+function EXPLORE(){
+  CUR = -1; HL = []; hl(); $("explore").style.display = ""; $("exspace").style.display = "none"; $("exnote").style.display = "";
+  document.querySelectorAll(".exb button").forEach(b => b.classList.toggle("on", b.id === "bexp"));
+}
+document.addEventListener("input", () => setTimeout(() => { hl(); refresh(); }, 0));
+document.addEventListener("change", () => setTimeout(() => { hl(); refresh(); }, 0));
+/* preset buttons in the calculator: the one pressed shows as selected; typing a new value clears it */
+const PRESETS = () => [...document.querySelectorAll("#explore button")];
+document.addEventListener("click", e => { const b = e.target.closest("button"); if (!b || !b.closest("#explore")) return;
+  PRESETS().forEach(x => x.classList.remove("on")); b.classList.add("on"); });
+document.addEventListener("input", e => { if (e.isTrusted && e.target.closest("#explore")) PRESETS().forEach(x => x.classList.remove("on")); }, true);
+window.addEventListener("load", () => { const p = PRESETS(); if (p.length) p[0].classList.add("on"); if (typeof EXS !== "undefined" && EXS.length) EX(0); });
 
 /* small user-interface helpers */
 const $ = id => document.getElementById(id);
@@ -368,35 +432,38 @@ function arrowDefs(svg, id, colour){ const d = svgEl("defs", {}); const m = svgE
   m.appendChild(svgEl("path", {d:"M0 0L10 5L0 10z", fill:colour})); d.appendChild(m); svg.appendChild(d); }
 const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
 const B = { N: 48266.651, E: 20890.909, H: 2.31 };
+function put(n0, e0, h0, n1, e1, h1){ S("n0", n0); S("e0", e0); S("h0", h0); S("n1", (+n1).toFixed(3)); S("e1", (+e1).toFixed(3)); S("h1", (+h1).toFixed(3)); calc(); }
 function sc(k){
-  $("n0").value = B.N; $("e0").value = B.E; $("h0").value = B.H;
-  const v = [[B.N - 0.247, B.E + 0.925, B.H], [B.N + 5.5, B.E + 193.0, B.H], [B.E, B.N, B.H], [B.N, B.E, B.H + 9.70], [B.N + 1e-3, B.E - 2e-3, B.H]][k];
-  if (k === 4) { const u = GEO.utm(CASE.S.lat, CASE.S.lon, ...WGS); v[0] = u.N; v[1] = u.E; }
-  $("n1").value = v[0].toFixed(3); $("e1").value = v[1].toFixed(3); $("h1").value = v[2].toFixed(3); calc(); }
+  const u = GEO.utm(CASE.S.lat, CASE.S.lon, ...WGS);
+  const v = [[B.E, B.N, B.H], [u.N, u.E, B.H], [B.N + 6.7, B.E + 191.9, B.H], [B.N, B.E, B.H + 9.70]][k];
+  put(B.N, B.E, B.H, ...v); }
 function calc(){
   const dn = val("n1") - val("n0"), de = val("e1") - val("e0"), dh = val("h1") - val("h0"), d = Math.hypot(dn, de), az = (Math.atan2(de, dn) * GEO.R2D + 360) % 360;
+  const near = (a, b, t) => Math.abs(((a - b + 540) % 360) - 180) < t;
   $("out").innerHTML = rows([["Δ northing", F(dn) + " m"], ["Δ easting", F(de) + " m"], ["Horizontal", F(d) + " m towards " + az.toFixed(0) + "°"], ["Δ height", F(dh) + " m"]]);
   const c = [];
   if (Math.abs(val("n1") - val("e0")) < 1 && Math.abs(val("e1") - val("n0")) < 1 && d > 1) c.push("Northing and easting have been <b>exchanged</b>. Many GIS files list easting first (Section 1.3).");
   else if (val("n1") > 100000 || val("e1") > 100000) c.push("The received values are far outside the SVY21 range: probably a <b>different grid</b>, such as UTM zone 48N (Chapter 14). Convert through latitude and longitude, never by a shift.");
-  else if (d > 120 && d < 260 && Math.abs(de) > 3 * Math.abs(dn)) c.push("About 190 m, mostly east–west: the hallmark of the <b>old Kertau datum</b> (Chapters 5 and 8). Use the authority's conversion for old records.");
-  else if (d > 0.05 && d < 3 && (Math.abs(az - 105) < 25 || Math.abs(az - 285) < 25)) c.push(`About ${(d / 0.0297).toFixed(0)} years of <b>plate motion</b> (29.7 mm a year towards 105°): the received coordinates are in a global frame at a recent epoch, for example from PPP, while SVY21 is fixed (Chapters 7 and 8).`);
-  else if (d > 0.02 && d < 3) c.push("A difference of centimetres to a metre in another direction suggests a <b>different realisation or local transformation</b>, or a disturbed mark. Check against other control (Chapters 9 to 11).");
+  else if (d > 120 && d < 260 && Math.abs(de) > 3 * Math.abs(dn)) c.push("About 190 m, mostly east–west: the hallmark of the <b>old Kertau datum</b> (Chapter 5). Use the authority's conversion for old records.");
+  else if (d > 1.5 && d < 3.5 && de > 1.5 && dn < -0.8) c.push("About 2.5 m east and 1.5 m south: values on the <b>former Singapore grid</b> (Section 8.6, Example 8.3). A local fit to common points brings them to centimetres (Section 16.3).");
+  else if (d > 0.05 && d < 1.5 && (near(az, 105, 25) || near(az, 285, 25))) {
+    c.push(`About ${(d / 0.0298).toFixed(1)} years of <b>plate motion</b> (29.8 mm a year towards 105°): one set is in a global frame at a later epoch, for example from PPP or PPP-RTK (Section 8.5), while SVY21 is fixed (Chapters 7 and 8). If a nearby reference mark moved the same way, the ground has not moved relative to it (Section 16.4).`);
+    if (d > 0.15 && d < 0.25 && near(az, 121, 8)) c.push("Or: this is close to the difference between <b>SVY21 and GDM2000</b> at Singapore, 0.197 m towards 121° (Example 11.2). Check whether one set is Malaysian.");
+  }
+  else if (d > 0.05 && d < 1.5) c.push("Decimetres in another direction: <b>another national datum</b>, such as GDM2000, a different realisation, or a local transformation (Chapters 9 to 11). Check against other control.");
+  else if (d > 0.02 && d <= 0.05) c.push("Centimetres: a <b>different realisation</b>, an old shift reused, or a disturbed mark (Chapters 4, 8 and 11).");
   if (Math.abs(dh) > 9 && Math.abs(dh) < 11) c.push("Height differs by nearly 10 m: an <b>ellipsoidal height</b> has been used as a reduced level, or the reverse. In Singapore the geoid is about 9.7 m above the ellipsoid (Chapter 4).");
-  else if (Math.abs(dh) > 0.05 && Math.abs(dh) < 9) c.push("A height difference of this size suggests a different <b>vertical datum</b> or geoid model (Chapter 4).");
+  else if (Math.abs(dh) > 0.05 && Math.abs(dh) < 9) c.push("A height difference of this size suggests a different <b>vertical datum</b> or geoid model, or a drafting mix-up such as deck surface against soffit (Chapter 4, Section 16.5).");
   if (!c.length) c.push(d < 0.02 && Math.abs(dh) < 0.05 ? "<span class='ok'>The coordinates agree within ordinary survey precision.</span>" : "No common cause matches. Check the metadata: datum, epoch, grid, height datum and units.");
   $("diag").innerHTML = c.map(x => `<p>${x}</p>`).join("");
-  const svg = $("fig"), W = 600, H = 300; svg.innerHTML = ""; svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
-  arrowDefs(svg, "aa", "var(--warn)");
-  const k = 120 / Math.max(d, 1e-6), cx = 300, cy = 150;
-  svg.appendChild(svgEl("rect", { x: 0, y: 0, width: W, height: H, fill: "var(--pale)" }));
-  svg.appendChild(svgEl("line", { x1: cx, x2: cx, y1: 20, y2: 280, stroke: "var(--line)" })); svg.appendChild(svgEl("line", { x1: 150, x2: 450, y1: cy, y2: cy, stroke: "var(--line)" }));
-  svg.appendChild(svgEl("text", { x: cx + 4, y: 30, "font-size": 12 }, "grid north"));
-  if (d > 1e-6) svg.appendChild(svgEl("line", { x1: cx, y1: cy, x2: cx + de * k, y2: cy - dn * k, stroke: "var(--warn)", "stroke-width": 3, "marker-end": "url(#aa)" }));
-  dot(svg, [cx, cy], 5, "var(--ink)", "expected", 8, 16, 12);
-  svg.appendChild(svgEl("text", { x: 20, y: H - 14, "font-size": 12, fill: "var(--quiet)" }, `arrow length ${F(d)} m (drawn at a fixed length)`));
 }
 sc(0); wire(calc);
+
+const EXS = [[function(){put(B.N, B.E, B.H, B.N - 0.248, B.E + 0.921, B.H + 9.70);}, 'A PPP-RTK survey onto SVY21 (Section 16.2): the received values lie 0.921 m east and 0.248 m south of SVY21 (Table 16.1), and the heights are nearly 10 m high. Plate motion and an ellipsoidal height.', ['Horizontal', 'Δ height'], 'Add 0.5 m to the received northing: the direction swings to about 75°, and the plate-motion diagnosis no longer fits.', 'Case 16.2'],
+[function(){put(27481.715, 31247.932, 0, 27480.15, 31250.40, 0);}, 'Point L1 of the legacy plan (Table 16.2), old grid against SVY21: 2.468 m east, 1.565 m south. The former Singapore grid.', ['Δ northing', 'Δ easting', 'Horizontal'], 'Try point L4 of Table 16.2 (old N 27 905.10, E 31 480.60 against SVY21 N 27 906.652, E 31 478.214): the same diagnosis, though L4 was the disturbed manhole. Size and direction cannot see a 59 mm error; the fit of Chapter 10 can.', 'Case 16.3'],
+[function(){put(B.N, B.E, B.H, B.N - 0.049, B.E + 0.123, B.H);}, 'Point M by PPP, mid-2021 to mid-2025 (Table 16.3): 123 mm east, 49 mm south, about 4.4 years of plate motion. Pillar R moved almost the same; M minus R is the real movement.', ['Horizontal'], "Enter R's movement instead (117 mm east, 35 mm south): almost the same. The difference M − R is the structure's own movement.", 'Case 16.4'],
+[function(){put(B.N, B.E, B.H, B.N - 0.102, B.E + 0.168, B.H);}, 'The Strait Link (Section 16.5): GDM2000 coordinates read as SVY21 at S, 0.168 m east and 0.102 m south (Example 11.2). Plate motion alone cannot be told from a datum difference here: the second line of the diagnosis is the right one.', ['Horizontal'], 'The app offers two causes. Only the metadata, or a known mark, decides between them.', 'Case 16.5']];
+const SOL = {"Case 16.2": {"given": [["Expected: SVY21 N, E (m)", ["n0", "e0"]], ["Expected: reduced level (m)", ["h0"]], ["Received: N, E (m)", ["n1", "e1"]], ["Received: height (m)", ["h1"]]], "items": [["#", "The difference", ""], ["r", "Δ northing", "Δ northing"], ["r", "Δ easting", "Δ easting"], ["!", "Horizontal", "Horizontal, size and direction"], ["!", "Δ height", "Δ height"], ["#", "Reading it with Figure 16.1", ""], ["!", "#diag", "Likely cause"]]}, "Case 16.3": {"given": [["Expected: SVY21 N, E (m)", ["n0", "e0"]], ["Expected: reduced level (m)", ["h0"]], ["Received: N, E (m)", ["n1", "e1"]], ["Received: height (m)", ["h1"]]], "items": [["#", "The difference", ""], ["!", "Δ northing", "Δ northing"], ["!", "Δ easting", "Δ easting"], ["!", "Horizontal", "Horizontal, size and direction"], ["r", "Δ height", "Δ height"], ["#", "Reading it with Figure 16.1", ""], ["!", "#diag", "Likely cause"]]}, "Case 16.4": {"given": [["Expected: SVY21 N, E (m)", ["n0", "e0"]], ["Expected: reduced level (m)", ["h0"]], ["Received: N, E (m)", ["n1", "e1"]], ["Received: height (m)", ["h1"]]], "items": [["#", "The difference", ""], ["!", "Δ northing", "Δ northing"], ["!", "Δ easting", "Δ easting"], ["!", "Horizontal", "Horizontal, size and direction"], ["r", "Δ height", "Δ height"], ["#", "Reading it with Figure 16.1", ""], ["!", "#diag", "Likely cause"]]}, "Case 16.5": {"given": [["Expected: SVY21 N, E (m)", ["n0", "e0"]], ["Expected: reduced level (m)", ["h0"]], ["Received: N, E (m)", ["n1", "e1"]], ["Received: height (m)", ["h1"]]], "items": [["#", "The difference", ""], ["!", "Δ northing", "Δ northing"], ["!", "Δ easting", "Δ easting"], ["!", "Horizontal", "Horizontal, size and direction"], ["r", "Δ height", "Δ height"], ["#", "Reading it with Figure 16.1", ""], ["!", "#diag", "Likely cause"]]}};
 
 </script>
 </body>

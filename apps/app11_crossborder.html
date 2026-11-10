@@ -32,8 +32,12 @@ table.res th{font:600 12px system-ui,sans-serif;color:var(--quiet)}
 table.res td.v{text-align:right;white-space:nowrap}
 .note{font-size:13.5px;color:var(--quiet)}
 .exbar{margin-bottom:14px}.exb button{margin:0 6px 6px 0}.exb button.on{background:var(--accent);color:#fff}
+button:not(.on){background:transparent;color:var(--accent)}button.on{background:var(--accent);color:#fff}
 #exnote{margin:4px 0 0}
 table.res tr.hl td{background:#ffe9a8;font-weight:700}
+table.res td.txt{font:14px/1.45 Georgia,serif;white-space:normal}table.res td.txt p{margin:4px 0}
+#exspace .grid{grid-template-columns:minmax(260px,360px) 1fr}#sgiven textarea{width:100%;font:12px ui-monospace,monospace}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) table.res tr.hl td{background:#4a3b0c}}
 table.res tr.hl td:first-child{box-shadow:inset 4px 0 0 #d4a017}
 .try{background:var(--pale);border-radius:10px;padding:10px 14px;margin-top:16px;font-size:14px}
 .try b{color:var(--dark)}
@@ -47,7 +51,9 @@ footer{max-width:1100px;margin:10px auto 30px;padding:0 16px;font-size:12px;colo
 <body>
 <header><div class="num">App 11 · Chapter 11</div><h1>One mark, three countries</h1><p>A mark positioned in ITRF2020 in a common campaign, expressed on SVY21 (Singapore), GDM2000 (Malaysia) and SRGI2013 (Indonesia), and on each country's grids.</p></header>
 <main>
-<div class="card exbar"><h2>Worked examples in the book</h2><div class="exb"><button class="ghost" onclick="EX(0)">Example 11.1</button> <button class="ghost" onclick="EX(1)">Example 11.2</button> <button class="ghost" onclick="EX(2)">Example 11.3</button> <button class="ghost" onclick="EX(3)">Example 11.4</button></div><p class="note" id="exnote">Press a button to load the values of a worked example in the book.</p></div>
+<div class="card exbar"><h2>Worked examples in the book</h2><div class="exb"><button class="ghost" onclick="EX(0)">Example 11.1</button> <button class="ghost" onclick="EX(1)">Example 11.2</button> <button class="ghost" onclick="EX(2)">Example 11.3</button> <button class="ghost" onclick="EX(3)">Example 11.4</button> <button class="ghost" id="bexp" onclick="EXPLORE()">Explore: all inputs and results</button></div><p class="note" id="exnote">Change any input and every result updates. Press an example to return to its solution.</p></div>
+<div id="exspace"></div>
+<div id="explore">
 <div class="grid">
  <div class="card"><h2>The mark (ITRF2020 at the campaign epoch)</h2>
   <label>Latitude N</label><div class="dms"><input id="latd" type="number"><input id="latm" type="number"><input id="lats" type="number" step="any"></div>
@@ -56,7 +62,7 @@ footer{max-width:1100px;margin:10px auto 30px;padding:0 16px;font-size:12px;colo
   <label>Campaign epoch</label><input id="t" type="number" step="0.1">
   <label>Shift to SVY21, ΔX ΔY ΔZ (m, measured at SVY21 marks)</label><div class="row"><input id="sx" type="number" step="any"><input id="sy" type="number" step="any"><input id="sz" type="number" step="any"></div>
   <label>Shift to GDM2000, ΔX ΔY ΔZ (m, measured at GDM2000 marks)</label><div class="row"><input id="mx" type="number" step="any"><input id="my" type="number" step="any"><input id="mz" type="number" step="any"></div>
-  <button onclick="load('S')">Mark S</button> <button class="ghost" onclick="load('J')">Mark J</button> <button class="ghost" onclick="load('B')">Mark B, Batam</button>
+  <button onclick="load('S')">Mark S</button> <button onclick="load('J')">Mark J</button> <button onclick="load('B')">Mark B, Batam</button>
  </div>
  <div>
   <div class="card"><h2>Results</h2><table class="res" id="out"></table></div>
@@ -72,6 +78,7 @@ footer{max-width:1100px;margin:10px auto 30px;padding:0 16px;font-size:12px;colo
 </div>
 <div class="try"><b>Try this.</b> For mark S, SVY21 and GDM2000 latitude and longitude differ by only a few centimetres, but the grid coordinates are completely different numbers: a datum difference and a projection difference are separate things. For mark B, the SRGI2013 estimate differs from the campaign position by about 0.4 m: fourteen years of plate motion since 2012.0. Change the campaign epoch and watch only that figure change.</div>
 
+</div>
 </main>
 <footer>Companion app to <i>Datums, Coordinate Systems and Map Projections</i> by Yam Khoon Tor. &copy; 2026 Yam Khoon Tor. A teaching aid, provided without warranty: check results independently before use in survey work. The running-case points are illustrative.</footer>
 <script>
@@ -342,24 +349,81 @@ const SVY = GEO.SVY21, WGS = GEO.ELLIPSOIDS.WGS84, GRS = GEO.ELLIPSOIDS.GRS80, E
 /* worked-example buttons */
 function S(id, v){ $(id).value = v; }
 function Dm(id, d, m, s){ $(id + "d").value = d; $(id + "m").value = m; $(id + "s").value = s; }
-let HL = [];
+let HL = [], CUR = -1;
 function hl(){
   document.querySelectorAll("table.res tr").forEach(tr => tr.classList.remove("hl"));
   if (!HL.length) return;
-  document.querySelectorAll("table.res").forEach(tb => { let head = "";
+  document.querySelectorAll("#explore table.res").forEach(tb => { let head = "";
     tb.querySelectorAll("tr").forEach(tr => { const th = tr.querySelector("th"); if (th) { head = th.textContent.trim(); return; }
       const td = tr.querySelector("td"); if (!td) return; const lab = td.textContent.trim();
-      for (const spec of HL) { let h = "", l = spec; const k = spec.indexOf(" > "); if (k >= 0) { h = spec.slice(0, k); l = spec.slice(k + 3); }
-        if (h && !head.startsWith(h)) continue;
-        const ok = l.endsWith("…") ? lab.startsWith(l.slice(0, -1)) : lab === l;
-        if (ok) { tr.classList.add("hl"); break; } } }); });
+      for (const spec of HL) { if (match(spec, head, lab)) { tr.classList.add("hl"); break; } } }); });
 }
-function EX(i){ EXS[i][0](); const f = document.querySelector(".grid input, .grid select"); if (f) f.dispatchEvent(new Event("input", {bubbles: true}));
-  $("exnote").innerHTML = EXS[i][1]; HL = EXS[i][2] || []; hl();
+function match(spec, head, lab){ let h = "", l = spec; const k = spec.indexOf(" > "); if (k >= 0) { h = spec.slice(0, k); l = spec.slice(k + 3); }
+  if (h && !head.startsWith(h.endsWith("…") ? h.slice(0, -1) : h)) return false;
+  return l.endsWith("…") ? lab.startsWith(l.slice(0, -1)) : lab === l; }
+/* find a result row in the calculator by "Header > Row" and return its value */
+function lookup(spec){
+  if (spec.startsWith("#")) { const e = $(spec.slice(1)); return e ? e.innerHTML : "—"; }
+  for (const tb of document.querySelectorAll("#explore table.res")) { let head = "";
+    for (const tr of tb.querySelectorAll("tr")) { const th = tr.querySelector("th"); if (th) { head = th.textContent.trim(); continue; }
+      const td = [...tr.querySelectorAll("td")]; if (!td.length) continue;
+      if (match(spec, head, td[0].textContent.trim())) return td.slice(1).map(x => x.innerHTML).join(" &nbsp; "); } }
+  return "—";
+}
+/* the solution space of one worked example */
+function mirror(id){ const o = $(id); if (!o) return document.createTextNode("?");
+  let m; if (o.tagName === "SELECT") { m = o.cloneNode(true); m.value = o.value; }
+  else if (o.tagName === "TEXTAREA") { m = document.createElement("textarea"); m.rows = o.rows; m.value = o.value; m.style.cssText = o.style.cssText; }
+  else { m = document.createElement("input"); m.type = o.type === "range" ? "number" : o.type; m.step = o.step || "any"; if (o.min) m.min = o.min; if (o.max) m.max = o.max; if (o.type === "checkbox") m.checked = o.checked; else m.value = o.value; }
+  m.removeAttribute("id"); m.dataset.src = id;
+  const go = () => { if (o.type === "checkbox") o.checked = m.checked; else o.value = m.value;
+    o.dispatchEvent(new Event("input", {bubbles: true})); o.dispatchEvent(new Event("change", {bubbles: true})); setTimeout(refresh, 0); };
+  m.addEventListener("input", go); m.addEventListener("change", go); return m; }
+function buildSpace(i){
+  const sol = (typeof SOL !== "undefined" && SOL[EXS[i][4]]) || null, box = $("exspace");
+  let g = '<div class="grid"><div><div class="card"><h2>Given</h2><div id="sgiven"></div><p class="note" style="margin-top:10px">Change a value and the solution follows.</p></div>';
+  g += EXS[i][3] ? `<div class="try"><b>Try this.</b> ${EXS[i][3]}</div>` : "";
+  g += '</div><div><div class="card"><h2>Solution</h2><table class="res" id="ssol"></table></div>';
+  g += `<div class="card" style="margin-top:12px"><h2>The book's values</h2><p class="note" style="margin:0">${EXS[i][1]}</p></div></div></div>`;
+  box.innerHTML = g;
+  const gv = $("sgiven");
+  for (const grp of (sol ? sol.given : [])) {
+    const lab = document.createElement("label"); lab.innerHTML = grp[0]; gv.appendChild(lab);
+    const ids = grp[1]; const row = document.createElement("div");
+    if (ids.length === 1 && $(ids[0]) && $(ids[0]).type === "checkbox") { row.className = "chk"; const m = mirror(ids[0]); row.appendChild(m); lab.remove(); const sp = document.createElement("span"); sp.innerHTML = grp[0]; row.appendChild(sp); }
+    else { row.className = ids.length === 3 && /d$/.test(ids[0]) ? "dms" : "row"; ids.forEach(id => row.appendChild(mirror(id))); }
+    gv.appendChild(row); }
+  refresh();
+}
+function refresh(){
+  if (CUR < 0) return;
+  document.querySelectorAll("#sgiven [data-src]").forEach(m => { if (m === document.activeElement) return; const o = $(m.dataset.src); if (!o) return;
+    if (o.type === "checkbox") m.checked = o.checked; else if (m.value !== o.value) m.value = o.value; });
+  const sol = (typeof SOL !== "undefined" && SOL[EXS[CUR][4]]) || null, t = $("ssol"); if (!t || !sol) return;
+  t.innerHTML = sol.items.map(it => it[0] === "#" ? `<tr><th colspan="2">${it[1]}</th></tr>` : it[1].startsWith("#") ?
+    `<tr${it[0] === "!" ? ' class="hl"' : ""}><td colspan="2" class="txt"><b>${it[2]}</b><br>${lookup(it[1])}</td></tr>` :
+    `<tr${it[0] === "!" ? ' class="hl"' : ""}><td>${it[2]}</td><td class="v">${lookup(it[1])}</td></tr>`).join("");
+}
+function EX(i){
+  CUR = i; EXS[i][0](); const f = document.querySelector("#explore input, #explore select"); if (f) f.dispatchEvent(new Event("input", {bubbles: true}));
+  HL = EXS[i][2] || []; hl();
+  document.querySelectorAll("button.on").forEach(b => b.classList.remove("on"));
   document.querySelectorAll(".exb button").forEach((b, j) => b.classList.toggle("on", j === i));
-  const r = document.querySelector("table.res tr.hl"); if (r && window.innerWidth < 760) r.scrollIntoView({behavior: "smooth", block: "center"}); }
-document.addEventListener("input", () => setTimeout(hl, 0));
-document.addEventListener("change", () => setTimeout(hl, 0));
+  $("explore").style.display = "none"; $("exspace").style.display = ""; $("exnote").style.display = "none";
+  buildSpace(i);
+}
+function EXPLORE(){
+  CUR = -1; HL = []; hl(); $("explore").style.display = ""; $("exspace").style.display = "none"; $("exnote").style.display = "";
+  document.querySelectorAll(".exb button").forEach(b => b.classList.toggle("on", b.id === "bexp"));
+}
+document.addEventListener("input", () => setTimeout(() => { hl(); refresh(); }, 0));
+document.addEventListener("change", () => setTimeout(() => { hl(); refresh(); }, 0));
+/* preset buttons in the calculator: the one pressed shows as selected; typing a new value clears it */
+const PRESETS = () => [...document.querySelectorAll("#explore button")];
+document.addEventListener("click", e => { const b = e.target.closest("button"); if (!b || !b.closest("#explore")) return;
+  PRESETS().forEach(x => x.classList.remove("on")); b.classList.add("on"); });
+document.addEventListener("input", e => { if (e.isTrusted && e.target.closest("#explore")) PRESETS().forEach(x => x.classList.remove("on")); }, true);
+window.addEventListener("load", () => { const p = PRESETS(); if (p.length) p[0].classList.add("on"); if (typeof EXS !== "undefined" && EXS.length) EX(0); });
 
 /* small user-interface helpers */
 const $ = id => document.getElementById(id);
@@ -418,10 +482,11 @@ function route1(X, lat, lon, t, v){
     ["GDM2000 minus ITRF2020, east, north, up", m3(tot)], ["of which plate motion", m3(pl)], ["of which frame change", m3(fr)]];
 }
 
-const EXS = [[function(){load("J");}, 'J in ITRF2020 at 2026.2, as in Example 11.1. The <b>Route 1 estimate</b> rows give GDM2000 minus ITRF2020: about 0.755 m west, 0.145 m north and 0.021 m up, of which plate motion 0.754 m west and 0.198 m north, and frame change 1 mm west, 53 mm south and 21 mm up.', ['Route 1 > Latitude, longitude', 'GDM2000 minus ITRF2020, east, north, up', 'of which plate motion', 'of which frame change']],
-[function(){load("S");}, 'S from the common campaign. The <b>SVY21</b> and <b>GDM2000</b> rows reproduce Steps 3 and 4 of Example 11.2: SVY21 grid 48 266.651 N, 20 890.909 E; Johor Cassini −65 213.712, 23 188.429; RSO 160 657.488, 641 448.684.', ['Singapore > Latitude, longitude', 'SVY21 grid N, E', 'Malaysia > Latitude, longitude', 'Johor Cassini N, E', 'Peninsula RSO N, E']],
-[function(){load("B");}, 'B on Batam, ITRF2020 at 2026.2. The <b>SRGI2013</b> rows are the estimate of Example 11.3, by frame change and plate motion back to 2012.0, and its UTM 48N grid coordinates.', ['Indonesia > Latitude, longitude', 'UTM 48N N, E', 'SRGI2013 minus ITRF2020 at campaign']],
-[function(){S("l1a",1.2); S("l1o",103.9); S("l2a",1.1); S("l2o",104.05);}, 'P₁ (1° 12′ N, 103° 54′ E) to P₂ (1° 06′ N, 104° 03′ E): compare the ellipsoid, SVY21 and UTM 48N rows of the card <b>One line on two grids</b> with the table of Example 11.4.', ['On the ellipsoid', 'SVY21 > distance, minus true', 'SVY21 > bearing minus azimuth', 'UTM 48N > distance, minus true', 'UTM 48N > bearing minus azimuth']]];
+const EXS = [[function(){load("J");}, 'J in ITRF2020 at 2026.2. GDM2000 minus ITRF2020: 0.755 m west, 0.145 m north, 0.021 m up; plate motion 0.754 m west and 0.198 m north, frame change 0.001 m west, 0.053 m south, 0.021 m up; J on GDM2000 1° 27′ 55.00472″, 103° 46′ 24.97557″ (Example 11.1).', ['Route 1 > Latitude, longitude', 'GDM2000 minus ITRF2020, east, north, up', 'of which plate motion', 'of which frame change'], 'Change the campaign epoch from 2026.2 to 2030.0: the plate-motion part grows by about 0.11 m; the frame-change part hardly changes.', 'Example 11.1'],
+[function(){load("S");}, 'S from the common campaign: SVY21 grid 48 266.651 N, 20 890.909 E; Johor Cassini −65 213.712, 23 188.429; RSO 160 657.488, 641 448.684 (Example 11.2).', ['Singapore > Latitude, longitude', 'SVY21 grid N, E', 'Malaysia > Latitude, longitude', 'Johor Cassini N, E', 'Peninsula RSO N, E'], "Change the GDM2000 shift ΔX by 0.010 m: the Johor and RSO grid values of S move, the SVY21 ones do not. Each country's coordinates depend only on its own marks.", 'Example 11.2'],
+[function(){load("B");}, 'B on Batam: SRGI2013 minus ITRF2020 −407 mm east, +113 mm north; SRGI2013 1° 07′ 30.00369″, 104° 01′ 59.98684″; UTM 48N N 124 364.390, E 392 449.258 (Example 11.3).', ['Indonesia > Latitude, longitude', 'UTM 48N N, E', 'SRGI2013 minus ITRF2020 at campaign'], 'Change the campaign epoch by one year: the SRGI2013 estimate changes by about 30 mm, a year of plate motion.', 'Example 11.3'],
+[function(){S("l1a",1.2); S("l1o",103.9); S("l2a",1.1); S("l2o",104.05);}, 'P₁ (1° 12′ N, 103° 54′ E) to P₂ (1° 06′ N, 104° 03′ E): ellipsoid 20 024.403 m; SVY21 20 024.470 m (+67 mm), bearing −4.7″ from azimuth; UTM 48N 20 019.623 m (−4.780 m), +79.6″ (Example 11.4).', ['On the ellipsoid', 'SVY21 > distance, minus true', 'SVY21 > bearing minus azimuth', 'UTM 48N > distance, minus true', 'UTM 48N > bearing minus azimuth'], "Move P₂ halfway towards P₁: the UTM distance error roughly halves, but its scale error stays over 200 ppm, while SVY21's stays within a few ppm.", 'Example 11.4']];
+const SOL = {"Example 11.1": {"given": [["J: latitude, ITRF2020 (° ′ ″)", ["latd", "latm", "lats"]], ["J: longitude (° ′ ″)", ["lond", "lonm", "lons"]], ["h (m)", ["h"]], ["Campaign epoch", ["t"]]], "items": [["#", "Route 1: plate motion back to 2000.0, then ITRF2020 to ITRF2000", ""], ["!", "of which plate motion", "Plate motion, east, north, up"], ["!", "of which frame change", "Frame change, east, north, up"], ["!", "GDM2000 minus ITRF2020, east, north, up", "GDM2000 minus ITRF2020, in all"], ["#", "The estimate", ""], ["!", "Route 1… > Latitude, longitude", "J on GDM2000 (estimate)"]]}, "Example 11.2": {"given": [["S: latitude, ITRF2020 at 2026.2 (° ′ ″)", ["latd", "latm", "lats"]], ["S: longitude (° ′ ″)", ["lond", "lonm", "lons"]], ["h (m)", ["h"]], ["Shift to SVY21, ΔX ΔY ΔZ (m)", ["sx", "sy", "sz"]], ["Shift to GDM2000, ΔX ΔY ΔZ (m)", ["mx", "my", "mz"]]], "items": [["#", "Step 3. Geodetic coordinates on each datum", ""], ["!", "Singapore: SVY21 > Latitude, longitude", "SVY21"], ["!", "Malaysia: GDM2000 > Latitude, longitude", "GDM2000"], ["#", "Step 4. Grid coordinates", ""], ["!", "SVY21 grid N, E", "SVY21 grid N, E"], ["!", "Johor Cassini N, E", "Johor Cassini N, E"], ["!", "Peninsula RSO N, E", "Peninsula RSO N, E"], ["#", "The two datums compared", ""], ["r", "GDM2000 minus SVY21", "GDM2000 minus SVY21, east, north (mm)"]]}, "Example 11.3": {"given": [["B: latitude, ITRF2020 at 2026.2 (° ′ ″)", ["latd", "latm", "lats"]], ["B: longitude (° ′ ″)", ["lond", "lonm", "lons"]], ["h (m)", ["h"]], ["Campaign epoch", ["t"]]], "items": [["#", "Step 1. Plate motion back to the SRGI2013 epoch 2012.0", ""], ["!", "SRGI2013 minus ITRF2020 at campaign", "SRGI2013 minus ITRF2020, east, north (mm)"], ["#", "Step 2. B on SRGI2013", ""], ["!", "Indonesia… > Latitude, longitude", "Latitude, longitude"], ["#", "Step 3. UTM 48N", ""], ["!", "UTM 48N N, E", "UTM 48N N, E"]]}, "Example 11.4": {"given": [["P₁: latitude, longitude (degrees)", ["l1a", "l1o"]], ["P₂: latitude, longitude (degrees)", ["l2a", "l2o"]]], "items": [["#", "On the ellipsoid", ""], ["!", "On the ellipsoid", "Geodesic distance, azimuth"], ["#", "On SVY21", ""], ["!", "SVY21 > distance, minus true", "Grid distance, grid minus true"], ["!", "SVY21 > bearing minus azimuth", "Bearing minus azimuth"], ["#", "On UTM 48N", ""], ["!", "UTM 48N > distance, minus true", "Grid distance, grid minus true"], ["!", "UTM 48N > bearing minus azimuth", "Bearing minus azimuth"]]}};
 
 </script>
 </body>

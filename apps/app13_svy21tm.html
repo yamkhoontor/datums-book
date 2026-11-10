@@ -32,8 +32,12 @@ table.res th{font:600 12px system-ui,sans-serif;color:var(--quiet)}
 table.res td.v{text-align:right;white-space:nowrap}
 .note{font-size:13.5px;color:var(--quiet)}
 .exbar{margin-bottom:14px}.exb button{margin:0 6px 6px 0}.exb button.on{background:var(--accent);color:#fff}
+button:not(.on){background:transparent;color:var(--accent)}button.on{background:var(--accent);color:#fff}
 #exnote{margin:4px 0 0}
 table.res tr.hl td{background:#ffe9a8;font-weight:700}
+table.res td.txt{font:14px/1.45 Georgia,serif;white-space:normal}table.res td.txt p{margin:4px 0}
+#exspace .grid{grid-template-columns:minmax(260px,360px) 1fr}#sgiven textarea{width:100%;font:12px ui-monospace,monospace}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) table.res tr.hl td{background:#4a3b0c}}
 table.res tr.hl td:first-child{box-shadow:inset 4px 0 0 #d4a017}
 .try{background:var(--pale);border-radius:10px;padding:10px 14px;margin-top:16px;font-size:14px}
 .try b{color:var(--dark)}
@@ -47,7 +51,9 @@ footer{max-width:1100px;margin:10px auto 30px;padding:0 16px;font-size:12px;colo
 <body>
 <header><div class="num">App 13 · Chapter 13</div><h1>SVY21 grid converter, with a check against SiReNT</h1><p>Latitude and longitude to SVY21 northing and easting and back, with scale factor and convergence, tested on published stations.</p></header>
 <main>
-<div class="card exbar"><h2>Worked examples in the book</h2><div class="exb"><button class="ghost" onclick="EX(0)">Example 13.1</button> <button class="ghost" onclick="EX(1)">Example 13.2</button> <button class="ghost" onclick="EX(2)">Example 13.3</button></div><p class="note" id="exnote">Press a button to load the values of a worked example in the book.</p></div>
+<div class="card exbar"><h2>Worked examples in the book</h2><div class="exb"><button class="ghost" onclick="EX(0)">Example 13.1</button> <button class="ghost" onclick="EX(1)">Example 13.2</button> <button class="ghost" onclick="EX(2)">Example 13.3</button> <button class="ghost" id="bexp" onclick="EXPLORE()">Explore: all inputs and results</button></div><p class="note" id="exnote">Change any input and every result updates. Press an example to return to its solution.</p></div>
+<div id="exspace"></div>
+<div id="explore">
 <div class="grid">
  <div class="card"><h2>Forward: geodetic to grid</h2>
   <label>Latitude N</label><div class="dms"><input id="latd" type="number"><input id="latm" type="number"><input id="lats" type="number" step="any"></div>
@@ -64,6 +70,7 @@ footer{max-width:1100px;margin:10px auto 30px;padding:0 16px;font-size:12px;colo
 </div>
 <div class="try"><b>Try this.</b> Load each SiReNT station: the app reproduces SLA's published grid coordinates to under a millimetre. This is the known-value test that any conversion software should pass before it is trusted. Then type a grid position into the inverse boxes and confirm the round trip.</div>
 
+</div>
 </main>
 <footer>Companion app to <i>Datums, Coordinate Systems and Map Projections</i> by Yam Khoon Tor. &copy; 2026 Yam Khoon Tor. A teaching aid, provided without warranty: check results independently before use in survey work. The running-case points are illustrative.</footer>
 <script>
@@ -334,24 +341,81 @@ const SVY = GEO.SVY21, WGS = GEO.ELLIPSOIDS.WGS84, GRS = GEO.ELLIPSOIDS.GRS80, E
 /* worked-example buttons */
 function S(id, v){ $(id).value = v; }
 function Dm(id, d, m, s){ $(id + "d").value = d; $(id + "m").value = m; $(id + "s").value = s; }
-let HL = [];
+let HL = [], CUR = -1;
 function hl(){
   document.querySelectorAll("table.res tr").forEach(tr => tr.classList.remove("hl"));
   if (!HL.length) return;
-  document.querySelectorAll("table.res").forEach(tb => { let head = "";
+  document.querySelectorAll("#explore table.res").forEach(tb => { let head = "";
     tb.querySelectorAll("tr").forEach(tr => { const th = tr.querySelector("th"); if (th) { head = th.textContent.trim(); return; }
       const td = tr.querySelector("td"); if (!td) return; const lab = td.textContent.trim();
-      for (const spec of HL) { let h = "", l = spec; const k = spec.indexOf(" > "); if (k >= 0) { h = spec.slice(0, k); l = spec.slice(k + 3); }
-        if (h && !head.startsWith(h)) continue;
-        const ok = l.endsWith("…") ? lab.startsWith(l.slice(0, -1)) : lab === l;
-        if (ok) { tr.classList.add("hl"); break; } } }); });
+      for (const spec of HL) { if (match(spec, head, lab)) { tr.classList.add("hl"); break; } } }); });
 }
-function EX(i){ EXS[i][0](); const f = document.querySelector(".grid input, .grid select"); if (f) f.dispatchEvent(new Event("input", {bubbles: true}));
-  $("exnote").innerHTML = EXS[i][1]; HL = EXS[i][2] || []; hl();
+function match(spec, head, lab){ let h = "", l = spec; const k = spec.indexOf(" > "); if (k >= 0) { h = spec.slice(0, k); l = spec.slice(k + 3); }
+  if (h && !head.startsWith(h.endsWith("…") ? h.slice(0, -1) : h)) return false;
+  return l.endsWith("…") ? lab.startsWith(l.slice(0, -1)) : lab === l; }
+/* find a result row in the calculator by "Header > Row" and return its value */
+function lookup(spec){
+  if (spec.startsWith("#")) { const e = $(spec.slice(1)); return e ? e.innerHTML : "—"; }
+  for (const tb of document.querySelectorAll("#explore table.res")) { let head = "";
+    for (const tr of tb.querySelectorAll("tr")) { const th = tr.querySelector("th"); if (th) { head = th.textContent.trim(); continue; }
+      const td = [...tr.querySelectorAll("td")]; if (!td.length) continue;
+      if (match(spec, head, td[0].textContent.trim())) return td.slice(1).map(x => x.innerHTML).join(" &nbsp; "); } }
+  return "—";
+}
+/* the solution space of one worked example */
+function mirror(id){ const o = $(id); if (!o) return document.createTextNode("?");
+  let m; if (o.tagName === "SELECT") { m = o.cloneNode(true); m.value = o.value; }
+  else if (o.tagName === "TEXTAREA") { m = document.createElement("textarea"); m.rows = o.rows; m.value = o.value; m.style.cssText = o.style.cssText; }
+  else { m = document.createElement("input"); m.type = o.type === "range" ? "number" : o.type; m.step = o.step || "any"; if (o.min) m.min = o.min; if (o.max) m.max = o.max; if (o.type === "checkbox") m.checked = o.checked; else m.value = o.value; }
+  m.removeAttribute("id"); m.dataset.src = id;
+  const go = () => { if (o.type === "checkbox") o.checked = m.checked; else o.value = m.value;
+    o.dispatchEvent(new Event("input", {bubbles: true})); o.dispatchEvent(new Event("change", {bubbles: true})); setTimeout(refresh, 0); };
+  m.addEventListener("input", go); m.addEventListener("change", go); return m; }
+function buildSpace(i){
+  const sol = (typeof SOL !== "undefined" && SOL[EXS[i][4]]) || null, box = $("exspace");
+  let g = '<div class="grid"><div><div class="card"><h2>Given</h2><div id="sgiven"></div><p class="note" style="margin-top:10px">Change a value and the solution follows.</p></div>';
+  g += EXS[i][3] ? `<div class="try"><b>Try this.</b> ${EXS[i][3]}</div>` : "";
+  g += '</div><div><div class="card"><h2>Solution</h2><table class="res" id="ssol"></table></div>';
+  g += `<div class="card" style="margin-top:12px"><h2>The book's values</h2><p class="note" style="margin:0">${EXS[i][1]}</p></div></div></div>`;
+  box.innerHTML = g;
+  const gv = $("sgiven");
+  for (const grp of (sol ? sol.given : [])) {
+    const lab = document.createElement("label"); lab.innerHTML = grp[0]; gv.appendChild(lab);
+    const ids = grp[1]; const row = document.createElement("div");
+    if (ids.length === 1 && $(ids[0]) && $(ids[0]).type === "checkbox") { row.className = "chk"; const m = mirror(ids[0]); row.appendChild(m); lab.remove(); const sp = document.createElement("span"); sp.innerHTML = grp[0]; row.appendChild(sp); }
+    else { row.className = ids.length === 3 && /d$/.test(ids[0]) ? "dms" : "row"; ids.forEach(id => row.appendChild(mirror(id))); }
+    gv.appendChild(row); }
+  refresh();
+}
+function refresh(){
+  if (CUR < 0) return;
+  document.querySelectorAll("#sgiven [data-src]").forEach(m => { if (m === document.activeElement) return; const o = $(m.dataset.src); if (!o) return;
+    if (o.type === "checkbox") m.checked = o.checked; else if (m.value !== o.value) m.value = o.value; });
+  const sol = (typeof SOL !== "undefined" && SOL[EXS[CUR][4]]) || null, t = $("ssol"); if (!t || !sol) return;
+  t.innerHTML = sol.items.map(it => it[0] === "#" ? `<tr><th colspan="2">${it[1]}</th></tr>` : it[1].startsWith("#") ?
+    `<tr${it[0] === "!" ? ' class="hl"' : ""}><td colspan="2" class="txt"><b>${it[2]}</b><br>${lookup(it[1])}</td></tr>` :
+    `<tr${it[0] === "!" ? ' class="hl"' : ""}><td>${it[2]}</td><td class="v">${lookup(it[1])}</td></tr>`).join("");
+}
+function EX(i){
+  CUR = i; EXS[i][0](); const f = document.querySelector("#explore input, #explore select"); if (f) f.dispatchEvent(new Event("input", {bubbles: true}));
+  HL = EXS[i][2] || []; hl();
+  document.querySelectorAll("button.on").forEach(b => b.classList.remove("on"));
   document.querySelectorAll(".exb button").forEach((b, j) => b.classList.toggle("on", j === i));
-  const r = document.querySelector("table.res tr.hl"); if (r && window.innerWidth < 760) r.scrollIntoView({behavior: "smooth", block: "center"}); }
-document.addEventListener("input", () => setTimeout(hl, 0));
-document.addEventListener("change", () => setTimeout(hl, 0));
+  $("explore").style.display = "none"; $("exspace").style.display = ""; $("exnote").style.display = "none";
+  buildSpace(i);
+}
+function EXPLORE(){
+  CUR = -1; HL = []; hl(); $("explore").style.display = ""; $("exspace").style.display = "none"; $("exnote").style.display = "";
+  document.querySelectorAll(".exb button").forEach(b => b.classList.toggle("on", b.id === "bexp"));
+}
+document.addEventListener("input", () => setTimeout(() => { hl(); refresh(); }, 0));
+document.addEventListener("change", () => setTimeout(() => { hl(); refresh(); }, 0));
+/* preset buttons in the calculator: the one pressed shows as selected; typing a new value clears it */
+const PRESETS = () => [...document.querySelectorAll("#explore button")];
+document.addEventListener("click", e => { const b = e.target.closest("button"); if (!b || !b.closest("#explore")) return;
+  PRESETS().forEach(x => x.classList.remove("on")); b.classList.add("on"); });
+document.addEventListener("input", e => { if (e.isTrusted && e.target.closest("#explore")) PRESETS().forEach(x => x.classList.remove("on")); }, true);
+window.addEventListener("load", () => { const p = PRESETS(); if (p.length) p[0].classList.add("on"); if (typeof EXS !== "undefined" && EXS.length) EX(0); });
 
 /* small user-interface helpers */
 const $ = id => document.getElementById(id);
@@ -401,9 +465,10 @@ function calc(){
 }
 loadB(); wire(calc);
 
-const EXS = [[function(){$("st").value = ""; Dm("lat",1,22,21.44707); Dm("lon",103,58,18.00928); S("n",39403.770); S("e",43396.751);}, 'SLYG at Loyang. Forward: compare N, E, scale factor and convergence with Example 13.1.', ['Forward > Northing', 'Forward > Easting', 'Scale factor', 'Convergence']],
-[function(){$("st").value = ""; Dm("lat",1,22,21.44707); Dm("lon",103,58,18.00928); S("n",39403.770); S("e",43396.751);}, "Inverse from N 39 403.770, E 43 396.751 m: the <b>Inverse</b> rows return SLYG's latitude and longitude (Example 13.2).", ['Inverse > Latitude', 'Inverse > Longitude']],
-[function(){$("st").value = "SLYG"; $("st").dispatchEvent(new Event("change"));}, 'Choose each of the nine SiReNT stations in the list in turn: <b>Computed minus published</b> stays at a millimetre or less, as in Table 13.4 (Example 13.3).', ['Published by SLA', 'Computed minus published']]];
+const EXS = [[function(){$("st").value = ""; Dm("lat",1,22,21.44707); Dm("lon",103,58,18.00928); S("n",39403.770); S("e",43396.751);}, 'SLYG at Loyang. Forward: compare N, E, scale factor and convergence with Example 13.1.', ['Forward > Northing', 'Forward > Easting', 'Scale factor', 'Convergence'], 'Type the coordinates of another SiReNT station, or choose it under <i>Explore</i>: <i>Computed minus published</i> stays under a millimetre at all nine.', 'Example 13.1'],
+[function(){$("st").value = ""; Dm("lat",1,22,21.44707); Dm("lon",103,58,18.00928); S("n",39403.770); S("e",43396.751);}, 'Inverse from N 39 403.770, E 43 396.751 m: SLYG at 1° 22′ 21.44707″ N, 103° 58′ 18.00928″ E (Example 13.2).', ['Inverse > Latitude', 'Inverse > Longitude'], 'Change the northing by 1 m: the latitude changes by about 0.0326″, one metre on the meridian.', 'Example 13.2'],
+[function(){$("st").value = "SLYG"; $("st").dispatchEvent(new Event("change"));}, 'SLYG: computed minus published −0.6, −0.1 mm. Every one of the nine SiReNT stations agrees within a millimetre (Table 13.4, Example 13.3).', ['Published by SLA', 'Computed minus published'], 'Type a latitude 1″ wrong for the chosen station: the difference jumps to about 31 m. The test catches any slip.', 'Example 13.3']];
+const SOL = {"Example 13.1": {"given": [["SLYG latitude (° ′ ″)", ["latd", "latm", "lats"]], ["SLYG longitude (° ′ ″)", ["lond", "lonm", "lons"]]], "items": [["#", "Transverse Mercator forward, SVY21 definition", ""], ["!", "Forward > Northing", "Northing"], ["!", "Forward > Easting", "Easting"], ["#", "At the point", ""], ["!", "Scale factor", "Point scale factor k"], ["!", "Convergence", "Convergence γ"]]}, "Example 13.2": {"given": [["SLYG northing, easting (m)", ["n", "e"]]], "items": [["#", "Transverse Mercator inverse, through the footpoint latitude", ""], ["!", "Inverse > Latitude", "Latitude"], ["!", "Inverse > Longitude", "Longitude"]]}, "Example 13.3": {"given": [["SiReNT station (published by SLA)", ["st"]], ["Its latitude (° ′ ″)", ["latd", "latm", "lats"]], ["Its longitude (° ′ ″)", ["lond", "lonm", "lons"]]], "items": [["#", "Forward from the published latitude and longitude", ""], ["r", "Forward > Northing", "Northing, computed"], ["r", "Forward > Easting", "Easting, computed"], ["!", "Published by SLA", "Northing, easting, published"], ["!", "Computed minus published", "Computed minus published (mm)"]]}};
 
 </script>
 </body>

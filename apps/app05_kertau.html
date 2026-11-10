@@ -32,8 +32,12 @@ table.res th{font:600 12px system-ui,sans-serif;color:var(--quiet)}
 table.res td.v{text-align:right;white-space:nowrap}
 .note{font-size:13.5px;color:var(--quiet)}
 .exbar{margin-bottom:14px}.exb button{margin:0 6px 6px 0}.exb button.on{background:var(--accent);color:#fff}
+button:not(.on){background:transparent;color:var(--accent)}button.on{background:var(--accent);color:#fff}
 #exnote{margin:4px 0 0}
 table.res tr.hl td{background:#ffe9a8;font-weight:700}
+table.res td.txt{font:14px/1.45 Georgia,serif;white-space:normal}table.res td.txt p{margin:4px 0}
+#exspace .grid{grid-template-columns:minmax(260px,360px) 1fr}#sgiven textarea{width:100%;font:12px ui-monospace,monospace}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) table.res tr.hl td{background:#4a3b0c}}
 table.res tr.hl td:first-child{box-shadow:inset 4px 0 0 #d4a017}
 .try{background:var(--pale);border-radius:10px;padding:10px 14px;margin-top:16px;font-size:14px}
 .try b{color:var(--dark)}
@@ -45,9 +49,11 @@ footer{max-width:1100px;margin:10px auto 30px;padding:0 16px;font-size:12px;colo
 </style>
 </head>
 <body>
-<header><div class="num">App 5 · Chapter 5</div><h1>Old datum, new datum: Kertau 1968 and the modern datum</h1><p>A position moved between the modern geocentric datum and the old Kertau 1968 datum, in either direction, by two published transformations.</p></header>
+<header><div class="num">App 5 · Chapter 5</div><h1>Old datum, new datum: Kertau 1968 and the modern datum</h1><p>A position moved between the modern geocentric datum and the old Kertau 1968 datum, in either direction, by the three translations of Table 5.2.</p></header>
 <main>
-<div class="card exbar"><h2>Worked examples in the book</h2><div class="exb"><button class="ghost" onclick="EX(0)">Example 5.1</button> <button class="ghost" onclick="EX(1)">Example 5.2</button></div><p class="note" id="exnote">Press a button to load the values of a worked example in the book.</p></div>
+<div class="card exbar"><h2>Worked examples in the book</h2><div class="exb"><button class="ghost" onclick="EX(0)">Example 5.1</button> <button class="ghost" onclick="EX(1)">Example 5.2</button> <button class="ghost" id="bexp" onclick="EXPLORE()">Explore: all inputs and results</button></div><p class="note" id="exnote">Change any input and every result updates. Press an example to return to its solution.</p></div>
+<div id="exspace"></div>
+<div id="explore">
 <div class="grid">
  <div class="card"><h2>Input</h2>
   <label>Direction</label><select id="dir"><option value="toK" selected>Modern datum (WGS84 / GRS80) to Kertau 1968</option><option value="toM">Kertau 1968 to modern datum</option></select>
@@ -55,21 +61,21 @@ footer{max-width:1100px;margin:10px auto 30px;padding:0 16px;font-size:12px;colo
   <label>Latitude N</label><div class="dms"><input id="latd" type="number"><input id="latm" type="number"><input id="lats" type="number" step="any"></div>
   <label>Longitude E</label><div class="dms"><input id="lond" type="number"><input id="lonm" type="number"><input id="lons" type="number" step="any"></div>
   <label>Ellipsoidal height h (m)</label><input id="h" type="number" step="any" value="12.014">
-  <button onclick="reset()">Mark S</button> <button class="ghost" onclick="seawall()">Sea wall on an old plan</button>
+  <button onclick="reset()">Mark S</button> <button onclick="seawall()">Sea wall on an old plan</button>
   <h2 style="margin-top:14px">Published result, to compare (optional)</h2>
-  <label><input type="checkbox" id="usep"> Compare Method A with these values</label>
+  <label><input type="checkbox" id="usep"> Compare the result with these values</label>
   <label>Latitude N</label><div class="dms"><input id="platd" type="number"><input id="platm" type="number"><input id="plats" type="number" step="any"></div>
   <label>Longitude E</label><div class="dms"><input id="plond" type="number"><input id="plonm" type="number"><input id="plons" type="number" step="any"></div>
   <label>h (m)</label><input id="ph" type="number" step="any">
-  <p class="note">Method A: the three translations of Table 5.2 (Kertau 1968 to WGS84: ΔX −11, ΔY +851, ΔZ +5 m; reversed signs for WGS84 to Kertau), stated accuracy about 10 m.<br>Method B: JUPEM's six-parameter set between WGS84 (PMGSN94) and Kertau (MRT68), shown for comparison.</p>
+  <p class="note">The three translations of Table 5.2: Kertau 1968 to WGS84 ΔX −11, ΔY +851, ΔZ +5 m; the signs are reversed for WGS84 to Kertau. Stated accuracy about 10 m. The seven-parameter alternative is in App 9.</p>
  </div>
  <div>
   <div class="card"><h2 id="olab">On the Kertau 1968 datum</h2><table class="res" id="out"></table></div>
-  <svg id="fig" style="display:none"></svg>
  </div>
 </div>
-<div class="try"><b>Try this.</b> The two methods agree to a few metres, not millimetres: good enough to find an old sea wall, not to set out a pier. Change the height by 50 m: latitude and longitude barely move, which is why poorly known classical heights do little harm to positions, but heights should never be transformed this way.</div>
+<div class="try"><b>Try this.</b> Press <i>Sea wall on an old plan</i>: a Kertau position read off an old plan is turned back into the modern datum, and lands about 192 m west of where it would plot if the old numbers were taken as modern. Then change the height by 50 m: latitude and longitude barely move, so poorly known classical heights do little harm to positions; but a height should never be obtained this way.</div>
 
+</div>
 </main>
 <footer>Companion app to <i>Datums, Coordinate Systems and Map Projections</i> by Yam Khoon Tor. &copy; 2026 Yam Khoon Tor. A teaching aid, provided without warranty: check results independently before use in survey work. The running-case points are illustrative.</footer>
 <script>
@@ -340,24 +346,81 @@ const SVY = GEO.SVY21, WGS = GEO.ELLIPSOIDS.WGS84, GRS = GEO.ELLIPSOIDS.GRS80, E
 /* worked-example buttons */
 function S(id, v){ $(id).value = v; }
 function Dm(id, d, m, s){ $(id + "d").value = d; $(id + "m").value = m; $(id + "s").value = s; }
-let HL = [];
+let HL = [], CUR = -1;
 function hl(){
   document.querySelectorAll("table.res tr").forEach(tr => tr.classList.remove("hl"));
   if (!HL.length) return;
-  document.querySelectorAll("table.res").forEach(tb => { let head = "";
+  document.querySelectorAll("#explore table.res").forEach(tb => { let head = "";
     tb.querySelectorAll("tr").forEach(tr => { const th = tr.querySelector("th"); if (th) { head = th.textContent.trim(); return; }
       const td = tr.querySelector("td"); if (!td) return; const lab = td.textContent.trim();
-      for (const spec of HL) { let h = "", l = spec; const k = spec.indexOf(" > "); if (k >= 0) { h = spec.slice(0, k); l = spec.slice(k + 3); }
-        if (h && !head.startsWith(h)) continue;
-        const ok = l.endsWith("…") ? lab.startsWith(l.slice(0, -1)) : lab === l;
-        if (ok) { tr.classList.add("hl"); break; } } }); });
+      for (const spec of HL) { if (match(spec, head, lab)) { tr.classList.add("hl"); break; } } }); });
 }
-function EX(i){ EXS[i][0](); const f = document.querySelector(".grid input, .grid select"); if (f) f.dispatchEvent(new Event("input", {bubbles: true}));
-  $("exnote").innerHTML = EXS[i][1]; HL = EXS[i][2] || []; hl();
+function match(spec, head, lab){ let h = "", l = spec; const k = spec.indexOf(" > "); if (k >= 0) { h = spec.slice(0, k); l = spec.slice(k + 3); }
+  if (h && !head.startsWith(h.endsWith("…") ? h.slice(0, -1) : h)) return false;
+  return l.endsWith("…") ? lab.startsWith(l.slice(0, -1)) : lab === l; }
+/* find a result row in the calculator by "Header > Row" and return its value */
+function lookup(spec){
+  if (spec.startsWith("#")) { const e = $(spec.slice(1)); return e ? e.innerHTML : "—"; }
+  for (const tb of document.querySelectorAll("#explore table.res")) { let head = "";
+    for (const tr of tb.querySelectorAll("tr")) { const th = tr.querySelector("th"); if (th) { head = th.textContent.trim(); continue; }
+      const td = [...tr.querySelectorAll("td")]; if (!td.length) continue;
+      if (match(spec, head, td[0].textContent.trim())) return td.slice(1).map(x => x.innerHTML).join(" &nbsp; "); } }
+  return "—";
+}
+/* the solution space of one worked example */
+function mirror(id){ const o = $(id); if (!o) return document.createTextNode("?");
+  let m; if (o.tagName === "SELECT") { m = o.cloneNode(true); m.value = o.value; }
+  else if (o.tagName === "TEXTAREA") { m = document.createElement("textarea"); m.rows = o.rows; m.value = o.value; m.style.cssText = o.style.cssText; }
+  else { m = document.createElement("input"); m.type = o.type === "range" ? "number" : o.type; m.step = o.step || "any"; if (o.min) m.min = o.min; if (o.max) m.max = o.max; if (o.type === "checkbox") m.checked = o.checked; else m.value = o.value; }
+  m.removeAttribute("id"); m.dataset.src = id;
+  const go = () => { if (o.type === "checkbox") o.checked = m.checked; else o.value = m.value;
+    o.dispatchEvent(new Event("input", {bubbles: true})); o.dispatchEvent(new Event("change", {bubbles: true})); setTimeout(refresh, 0); };
+  m.addEventListener("input", go); m.addEventListener("change", go); return m; }
+function buildSpace(i){
+  const sol = (typeof SOL !== "undefined" && SOL[EXS[i][4]]) || null, box = $("exspace");
+  let g = '<div class="grid"><div><div class="card"><h2>Given</h2><div id="sgiven"></div><p class="note" style="margin-top:10px">Change a value and the solution follows.</p></div>';
+  g += EXS[i][3] ? `<div class="try"><b>Try this.</b> ${EXS[i][3]}</div>` : "";
+  g += '</div><div><div class="card"><h2>Solution</h2><table class="res" id="ssol"></table></div>';
+  g += `<div class="card" style="margin-top:12px"><h2>The book's values</h2><p class="note" style="margin:0">${EXS[i][1]}</p></div></div></div>`;
+  box.innerHTML = g;
+  const gv = $("sgiven");
+  for (const grp of (sol ? sol.given : [])) {
+    const lab = document.createElement("label"); lab.innerHTML = grp[0]; gv.appendChild(lab);
+    const ids = grp[1]; const row = document.createElement("div");
+    if (ids.length === 1 && $(ids[0]) && $(ids[0]).type === "checkbox") { row.className = "chk"; const m = mirror(ids[0]); row.appendChild(m); lab.remove(); const sp = document.createElement("span"); sp.innerHTML = grp[0]; row.appendChild(sp); }
+    else { row.className = ids.length === 3 && /d$/.test(ids[0]) ? "dms" : "row"; ids.forEach(id => row.appendChild(mirror(id))); }
+    gv.appendChild(row); }
+  refresh();
+}
+function refresh(){
+  if (CUR < 0) return;
+  document.querySelectorAll("#sgiven [data-src]").forEach(m => { if (m === document.activeElement) return; const o = $(m.dataset.src); if (!o) return;
+    if (o.type === "checkbox") m.checked = o.checked; else if (m.value !== o.value) m.value = o.value; });
+  const sol = (typeof SOL !== "undefined" && SOL[EXS[CUR][4]]) || null, t = $("ssol"); if (!t || !sol) return;
+  t.innerHTML = sol.items.map(it => it[0] === "#" ? `<tr><th colspan="2">${it[1]}</th></tr>` : it[1].startsWith("#") ?
+    `<tr${it[0] === "!" ? ' class="hl"' : ""}><td colspan="2" class="txt"><b>${it[2]}</b><br>${lookup(it[1])}</td></tr>` :
+    `<tr${it[0] === "!" ? ' class="hl"' : ""}><td>${it[2]}</td><td class="v">${lookup(it[1])}</td></tr>`).join("");
+}
+function EX(i){
+  CUR = i; EXS[i][0](); const f = document.querySelector("#explore input, #explore select"); if (f) f.dispatchEvent(new Event("input", {bubbles: true}));
+  HL = EXS[i][2] || []; hl();
+  document.querySelectorAll("button.on").forEach(b => b.classList.remove("on"));
   document.querySelectorAll(".exb button").forEach((b, j) => b.classList.toggle("on", j === i));
-  const r = document.querySelector("table.res tr.hl"); if (r && window.innerWidth < 760) r.scrollIntoView({behavior: "smooth", block: "center"}); }
-document.addEventListener("input", () => setTimeout(hl, 0));
-document.addEventListener("change", () => setTimeout(hl, 0));
+  $("explore").style.display = "none"; $("exspace").style.display = ""; $("exnote").style.display = "none";
+  buildSpace(i);
+}
+function EXPLORE(){
+  CUR = -1; HL = []; hl(); $("explore").style.display = ""; $("exspace").style.display = "none"; $("exnote").style.display = "";
+  document.querySelectorAll(".exb button").forEach(b => b.classList.toggle("on", b.id === "bexp"));
+}
+document.addEventListener("input", () => setTimeout(() => { hl(); refresh(); }, 0));
+document.addEventListener("change", () => setTimeout(() => { hl(); refresh(); }, 0));
+/* preset buttons in the calculator: the one pressed shows as selected; typing a new value clears it */
+const PRESETS = () => [...document.querySelectorAll("#explore button")];
+document.addEventListener("click", e => { const b = e.target.closest("button"); if (!b || !b.closest("#explore")) return;
+  PRESETS().forEach(x => x.classList.remove("on")); b.classList.add("on"); });
+document.addEventListener("input", e => { if (e.isTrusted && e.target.closest("#explore")) PRESETS().forEach(x => x.classList.remove("on")); }, true);
+window.addEventListener("load", () => { const p = PRESETS(); if (p.length) p[0].classList.add("on"); if (typeof EXS !== "undefined" && EXS.length) EX(0); });
 
 /* small user-interface helpers */
 const $ = id => document.getElementById(id);
@@ -373,14 +436,8 @@ function arrowDefs(svg, id, colour){ const d = svgEl("defs", {}); const m = svgE
   m.appendChild(svgEl("path", {d:"M0 0L10 5L0 10z", fill:colour})); d.appendChild(m); svg.appendChild(d); }
 const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
 const T3 = [-11, 851, 5];                      // Kertau to WGS84
-const T6 = [379.776, -775.384, 86.609], R6 = [-2.59674, -2.10213, 12.11377];   // X_K = T + R X_W
 function reset(){ $("dir").value = "toK"; setDms("lat", CASE.S.lat); setDms("lon", CASE.S.lon); $("h").value = CASE.S.h; $("usep").checked = false; calc(); }
 function seawall(){ $("dir").value = "toM"; setDms("lat", CASE.S.lat + 0.2196 / 3600); setDms("lon", CASE.S.lon + 6.2076 / 3600); $("h").value = 5; $("usep").checked = false; calc(); }
-function inv6(X){   // invert X_K = T + R X_W by iteration
-  let W = X.map((v, i) => v - T6[i]);
-  for (let k = 0; k < 4; k++) { const f = GEO.helmert7(W, T6, R6, 0); W = W.map((v, i) => v + (X[i] - f[i])); }
-  return W;
-}
 const sgn = (v, d = 3) => (v >= 0 ? "+" : "−") + F(Math.abs(v), d);
 function calc(){
   const toK = $("dir").value === "toK", src = toK ? WGS : EVE, tgt = toK ? EVE : WGS;
@@ -388,42 +445,27 @@ function calc(){
   $("olab").textContent = toK ? "On the Kertau 1968 datum" : "On the modern datum";
   const lat = dmsIn("lat"), lon = dmsIn("lon"), h = val("h"), X1 = GEO.geodeticToEcef(lat, lon, h, ...src);
   const X2 = X1.map((v, i) => v + (toK ? -T3[i] : T3[i])), A = GEO.ecefToGeodetic(...X2, ...tgt);
-  const B = GEO.ecefToGeodetic(...(toK ? GEO.helmert7(X1, T6, R6, 0) : inv6(X1)), ...tgt);
   const r = GEO.radii(lat, ...WGS), cl = Math.cos(lat * GEO.D2R);
   const sh = P => [(P[1] - lon) * GEO.D2R * r.nu * cl, (P[0] - lat) * GEO.D2R * r.M];
-  const sa = sh(A), sb = sh(B), sec = v => (v >= 0 ? "+" : "−") + Math.abs(v * 3600).toFixed(4) + "″";
-  const list = [["Method A, three translations"],
-    ["Step 1: Cartesian on the source ellipsoid"], ["X", F(X1[0])], ["Y", F(X1[1])], ["Z", F(X1[2])],
+  const sa = sh(A), sec = v => (v >= 0 ? "+" : "−") + Math.abs(v * 3600).toFixed(4) + "″";
+  const list = [["Step 1: Cartesian on the source ellipsoid"], ["X", F(X1[0])], ["Y", F(X1[1])], ["Z", F(X1[2])],
     ["Step 2: translations applied"], ["X ", F(X2[0])], ["Y ", F(X2[1])], ["Z ", F(X2[2])],
     ["Step 3: geodetic on the target ellipsoid"], ["Latitude", GEO.degToDms(A[0], 4)], ["Longitude", GEO.degToDms(A[1], 4)], ["h", F(A[2]) + " m"],
     ["The shift, target minus source"], ["Latitude", sec(A[0] - lat) + ", " + sgn(sa[1], 1) + " m north"], ["Longitude", sec(A[1] - lon) + ", " + sgn(sa[0], 1) + " m east"],
-    ["Total", F(Math.hypot(...sa), 1) + " m"],
-    ["Method B, JUPEM six parameters (PMGSN94)"], ["Latitude ", GEO.degToDms(B[0], 4)], ["Longitude ", GEO.degToDms(B[1], 4)], ["A minus B", `${(sa[0] - sb[0]).toFixed(1)} m east, ${(sa[1] - sb[1]).toFixed(1)} m north`]];
+    ["Total", F(Math.hypot(...sa), 1) + " m"]];
   if ($("usep").checked) {
     const pl = dmsIn("plat"), po = dmsIn("plon"), ph = val("ph");
-    list.push(["Method A minus the published result"], ["φ", GEO.degToDms(A[0], 4) + " − " + GEO.degToDms(pl, 5) + " = " + F(Math.abs(A[0] - pl) * GEO.D2R * r.M, 1) + " m"],
-      ["λ", GEO.degToDms(A[1], 4) + " − " + GEO.degToDms(po, 5) + " = " + F(Math.abs(A[1] - po) * GEO.D2R * r.nu * cl, 1) + " m"],
-      ["h ", F(A[2]) + " − " + F(ph) + " = " + F(Math.abs(A[2] - ph), 1) + " m"]);
+    list.push(["Compared with the published result: computed, published, difference"], ["φ", GEO.degToDms(A[0], 4) + ", " + GEO.degToDms(pl, 5) + ", " + F(Math.abs(A[0] - pl) * GEO.D2R * r.M, 1) + " m"],
+      ["λ", GEO.degToDms(A[1], 4) + ", " + GEO.degToDms(po, 5) + ", " + F(Math.abs(A[1] - po) * GEO.D2R * r.nu * cl, 1) + " m"],
+      ["h ", F(A[2]) + " m, " + F(ph) + " m, " + F(Math.abs(A[2] - ph), 1) + " m"]);
   }
   $("out").innerHTML = rows(list);
-  const svg = $("fig"), W = 600, H = 300; svg.innerHTML = ""; svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
-  arrowDefs(svg, "aa", "var(--accent)"); arrowDefs(svg, "ab", "var(--orange)");
-  const d = toK ? 1 : -1, x0 = toK ? 80 : W - 80, y0 = 150, k = 2.2;     // pixels per metre
-  svg.appendChild(svgEl("rect", { x: 0, y: 0, width: W, height: H, fill: "var(--pale)" }));
-  dot(svg, [x0, y0], 6, "var(--ink)", toK ? "position on the modern datum" : "position as printed on the old plan", toK ? 10 : -250, -14, 13);
-  svg.appendChild(svgEl("line", { x1: x0, y1: y0, x2: x0 + sa[0] * k, y2: y0 - sa[1] * k, stroke: "var(--accent)", "stroke-width": 2.5, "marker-end": "url(#aa)" }));
-  svg.appendChild(svgEl("line", { x1: x0, y1: y0, x2: x0 + sb[0] * k, y2: y0 - sb[1] * k, stroke: "var(--orange)", "stroke-width": 2, "stroke-dasharray": "6 4", "marker-end": "url(#ab)" }));
-  const tx = Math.min(W - 330, Math.max(10, x0 + sa[0] * k - (toK ? 300 : 10)));
-  svg.appendChild(svgEl("text", { x: tx, y: y0 - sa[1] * k + 30, "font-size": 13, fill: "var(--accent)" },
-    (toK ? "the same coordinates on Kertau, " : "true position on the modern datum, ") + Math.hypot(...sa).toFixed(0) + " m away"));
-  svg.appendChild(svgEl("line", { x1: 20, x2: 20 + 50 * k, y1: H - 20, y2: H - 20, stroke: "var(--ink)", "stroke-width": 3 }));
-  svg.appendChild(svgEl("text", { x: 20, y: H - 28, "font-size": 12 }, "50 m"));
-  svg.appendChild(svgEl("text", { x: 20, y: 24, "font-size": 12, fill: "var(--quiet)" }, "north up; blue = method A, orange dashed = method B"));
 }
 reset(); wire(calc);
 
-const EXS = [[function(){reset();}, 'S on the modern datum to Kertau 1968, as in Example 5.1: Step 1 X −1 517 612.859, Y 6 192 871.891, Z 160 623.535; Step 2 X −1 517 601.859, Y 6 192 020.891, Z 160 618.535; Step 3 φ 1° 27′ 10.2276″, λ 103° 46′ 16.1777″, h 15.814 m. The shift is +0.2196″ (6.7 m north) and +6.2076″ (191.9 m east), 192.0 m in all.', ['Step 1: Cartesian on the source ellipsoid > X', 'Step 1: Cartesian on the source ellipsoid > Y', 'Step 1: Cartesian on the source ellipsoid > Z', 'Step 2 > X', 'Step 2 > Y', 'Step 2 > Z', 'Step 3 > Latitude', 'Step 3 > Longitude', 'Step 3 > h', 'The shift > Latitude', 'The shift > Longitude', 'The shift > Total']],
-[function(){$("dir").value = "toK"; Dm("lat",1,51,27.04635); Dm("lon",102,56,31.75616); S("h",7.724); $("usep").checked = true; Dm("plat",1,51,27.38567); Dm("plon",102,56,37.52660); S("ph",2.338);}, "JUPEM's test point from GDM2000 to MRT68 by the three-parameter set, as in Example 5.2: φ 1° 51′ 27.3754″, λ 102° 56′ 37.5770″, h 8.901 m, against JUPEM's 1° 51′ 27.38567″, 102° 56′ 37.52660″, 2.338 m: differences 0.3 m, 1.6 m and 6.6 m.", ['Step 3 > Latitude', 'Step 3 > Longitude', 'Step 3 > h', 'Method A minus the published result > φ', 'Method A minus the published result > λ', 'Method A minus the published result > h']]];
+const EXS = [[function(){reset();}, 'S on the modern datum to Kertau 1968, as in Example 5.1: Step 1 X −1 517 612.859, Y 6 192 871.891, Z 160 623.535; Step 2 X −1 517 601.859, Y 6 192 020.891, Z 160 618.535; Step 3 φ 1° 27′ 10.2276″, λ 103° 46′ 16.1777″, h 15.814 m. The shift is +0.2196″ (6.7 m north) and +6.2076″ (191.9 m east), 192.0 m in all.', ['Step 1: Cartesian on the source ellipsoid > X', 'Step 1: Cartesian on the source ellipsoid > Y', 'Step 1: Cartesian on the source ellipsoid > Z', 'Step 2 > X', 'Step 2 > Y', 'Step 2 > Z', 'Step 3 > Latitude', 'Step 3 > Longitude', 'Step 3 > h', 'The shift > Latitude', 'The shift > Longitude', 'The shift > Total'], 'Change the height from 12.014 to 62.014 m: the Kertau latitude and longitude barely move, but the Kertau height changes by the full 50 m. Positions survive a poor height; heights should never be transformed this way.', 'Example 5.1'],
+[function(){$("dir").value = "toK"; Dm("lat",1,51,27.04635); Dm("lon",102,56,31.75616); S("h",7.724); $("usep").checked = true; Dm("plat",1,51,27.38567); Dm("plon",102,56,37.52660); S("ph",2.338);}, "JUPEM's test point from GDM2000 to MRT68 by the three-parameter set, as in Example 5.2: φ 1° 51′ 27.3754″, λ 102° 56′ 37.5770″, h 8.901 m, against JUPEM's 1° 51′ 27.38567″, 102° 56′ 37.52660″, 2.338 m: differences 0.3 m, 1.6 m and 6.6 m.", ['Step 3 > Latitude', 'Step 3 > Longitude', 'Step 3 > h', 'Step 1: Cartesian on the source ellipsoid > X', 'Step 1: Cartesian on the source ellipsoid > Y', 'Step 1: Cartesian on the source ellipsoid > Z', 'Step 2 > X', 'Step 2 > Y', 'Step 2 > Z', 'The shift > Total', 'Compared with the published result: computed, published, difference > φ', 'Compared with the published result: computed, published, difference > λ', 'Compared with the published result: computed, published, difference > h'], 'Change the GDM2000 height from 7.724 m to 0: latitude and longitude do not change in the fourth decimal of a second, while the computed height drops by 7.724 m. The 6.6 m height difference belongs to the classical datum, not to the method.', 'Example 5.2']];
+const SOL = {"Example 5.1": {"given": [["Direction", ["dir"]], ["Latitude of S (° ′ ″)", ["latd", "latm", "lats"]], ["Longitude of S (° ′ ″)", ["lond", "lonm", "lons"]], ["Ellipsoidal height h (m)", ["h"]]], "items": [["#", "Step 1. To Cartesian on the modern ellipsoid", ""], ["!", "Step 1… > X", "X"], ["!", "Step 1… > Y", "Y"], ["!", "Step 1… > Z", "Z"], ["#", "Step 2. Apply ΔX = +11, ΔY = −851, ΔZ = −5 m", ""], ["!", "Step 2… > X", "X"], ["!", "Step 2… > Y", "Y"], ["!", "Step 2… > Z", "Z"], ["#", "Step 3. To geodetic on the Modified Everest ellipsoid", ""], ["!", "Step 3… > Latitude", "Latitude"], ["!", "Step 3… > Longitude", "Longitude"], ["!", "Step 3… > h", "h"], ["#", "The shift, Kertau minus modern", ""], ["!", "The shift… > Latitude", "Latitude"], ["!", "The shift… > Longitude", "Longitude"], ["!", "The shift… > Total", "Total"]]}, "Example 5.2": {"given": [["GDM2000 latitude (° ′ ″)", ["latd", "latm", "lats"]], ["GDM2000 longitude (° ′ ″)", ["lond", "lonm", "lons"]], ["GDM2000 h (m)", ["h"]], ["Published MRT68 latitude (° ′ ″)", ["platd", "platm", "plats"]], ["Published MRT68 longitude (° ′ ″)", ["plond", "plonm", "plons"]], ["Published MRT68 h (m)", ["ph"]]], "items": [["#", "Step 1. To Cartesian on the modern ellipsoid", ""], ["r", "Step 1… > X", "X"], ["r", "Step 1… > Y", "Y"], ["r", "Step 1… > Z", "Z"], ["#", "Step 2. Apply the three translations", ""], ["r", "Step 2… > X", "X"], ["r", "Step 2… > Y", "Y"], ["r", "Step 2… > Z", "Z"], ["r", "The shift… > Total", "Shift, in all"], ["#", "Step 3. Compared with the published result: computed, published, difference", ""], ["!", "Compared with… > φ", "φ"], ["!", "Compared with… > λ", "λ"], ["!", "Compared with… > h", "h"]]}};
 
 </script>
 </body>

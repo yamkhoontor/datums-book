@@ -32,8 +32,12 @@ table.res th{font:600 12px system-ui,sans-serif;color:var(--quiet)}
 table.res td.v{text-align:right;white-space:nowrap}
 .note{font-size:13.5px;color:var(--quiet)}
 .exbar{margin-bottom:14px}.exb button{margin:0 6px 6px 0}.exb button.on{background:var(--accent);color:#fff}
+button:not(.on){background:transparent;color:var(--accent)}button.on{background:var(--accent);color:#fff}
 #exnote{margin:4px 0 0}
 table.res tr.hl td{background:#ffe9a8;font-weight:700}
+table.res td.txt{font:14px/1.45 Georgia,serif;white-space:normal}table.res td.txt p{margin:4px 0}
+#exspace .grid{grid-template-columns:minmax(260px,360px) 1fr}#sgiven textarea{width:100%;font:12px ui-monospace,monospace}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) table.res tr.hl td{background:#4a3b0c}}
 table.res tr.hl td:first-child{box-shadow:inset 4px 0 0 #d4a017}
 .try{background:var(--pale);border-radius:10px;padding:10px 14px;margin-top:16px;font-size:14px}
 .try b{color:var(--dark)}
@@ -48,24 +52,24 @@ footer{max-width:1100px;margin:10px auto 30px;padding:0 16px;font-size:12px;colo
 <header><div class="num">Datums, Coordinate Systems and Map Projections</div><h1>Companion apps</h1><p>One app for each chapter, with a button for each worked example</p></header>
 <main>
 <div class="card"><p>Open any app below in a web browser. Each runs entirely on this computer, with no
-internet connection and nothing to install. Change the values in the boxes and the results and drawing
+internet connection and nothing to install. Change the values in the boxes and the results
 update at once. Every app opens with the book's example marks S, J and B, and has a button for each worked example in its chapter.</p>
 <table class="res"><tr><td>App 1 · Chapter 1</td><td><a href="app01_one_point.html">One point, many coordinates</a><br><span class="note">The same physical mark described in six ways. Only the numbers change; the mark stays where it is.</span></td></tr>
 <tr><td>App 2 · Chapter 2</td><td><a href="app02_ellipsoid.html">The ellipsoid and its curvature</a><br><span class="note">How the size and flattening of the ellipsoid set the length of a second of arc, wherever the work is.</span></td></tr>
 <tr><td>App 3 · Chapter 3</td><td><a href="app03_coordinates.html">From latitude and longitude to X, Y, Z and to east, north, up</a><br><span class="note">The line from S to J, computed three ways: as a Cartesian vector, in local east-north-up, and on the ellipsoid.</span></td></tr>
 <tr><td>App 4 · Chapter 4</td><td><a href="app04_heights.html">GNSS height to reduced level</a><br><span class="note">H = h − N. Fit a local geoid surface to benchmarks with both a GNSS height and a levelled height, then use it at a new point.</span></td></tr>
-<tr><td>App 5 · Chapter 5</td><td><a href="app05_kertau.html">Old datum, new datum: Kertau 1968 and the modern datum</a><br><span class="note">A position moved between the modern geocentric datum and the old Kertau 1968 datum, in either direction, by two published transformations.</span></td></tr>
+<tr><td>App 5 · Chapter 5</td><td><a href="app05_kertau.html">Old datum, new datum: Kertau 1968 and the modern datum</a><br><span class="note">A position moved between the modern geocentric datum and the old Kertau 1968 datum, in either direction, by the three translations of Table 5.2.</span></td></tr>
 <tr><td>App 6 · Chapter 6</td><td><a href="app06_frames.html">One mark, several ITRF realisations</a><br><span class="note">How far apart are ITRF2020, ITRF2014, ITRF2008, ITRF2005 and ITRF2000 at the same place and the same epoch?</span></td></tr>
 <tr><td>App 7 · Chapter 7</td><td><a href="app07_plate.html">A moving Earth: how far has the mark travelled?</a><br><span class="note">Velocity of a point on the Sunda plate from its Euler pole, and the distance travelled between two epochs.</span></td></tr>
 <tr><td>App 8 · Chapter 8</td><td><a href="app08_svy21.html">From a GNSS campaign to SVY21</a><br><span class="note">Bring a mark positioned in ITRF2020 today onto SVY21, by measuring the shift at SVY21 control marks observed in the same campaign.</span></td></tr>
 <tr><td>App 9 · Chapter 9</td><td><a href="app09_helmert.html">The seven-parameter transformation, one parameter at a time</a><br><span class="note">See what each translation, rotation and the scale do to points across the project area, and what a wrong sign convention costs.</span></td></tr>
 <tr><td>App 10 · Chapter 10</td><td><a href="app10_fit.html">Fitting a site grid to SVY21 by least squares</a><br><span class="note">Four parameters (scale, rotation, two shifts) from common points, with residuals, a check point, and a deliberate blunder.</span></td></tr>
 <tr><td>App 11 · Chapter 11</td><td><a href="app11_crossborder.html">One mark, three countries</a><br><span class="note">A mark positioned in ITRF2020 in a common campaign, expressed on SVY21 (Singapore), GDM2000 (Malaysia) and SRGI2013 (Indonesia), and on each country's grids.</span></td></tr>
-<tr><td>App 12 · Chapter 12</td><td><a href="app12_distortion.html">How much does a Transverse Mercator grid distort?</a><br><span class="note">Scale factor, convergence and the arc-to-chord correction, as the central scale factor and the distance from the central meridian change.</span></td></tr>
+<tr><td>App 12 · Chapter 12</td><td><a href="app12_distortion.html">One line on two grids; reading a projection definition</a><br><span class="note">The same line on SVY21 and on UTM zone 48N, compared with the line on the ellipsoid; and a projection definition, as supplied with a GIS file, checked against a known point.</span></td></tr>
 <tr><td>App 13 · Chapter 13</td><td><a href="app13_svy21tm.html">SVY21 grid converter, with a check against SiReNT</a><br><span class="note">Latitude and longitude to SVY21 northing and easting and back, with scale factor and convergence, tested on published stations.</span></td></tr>
 <tr><td>App 14 · Chapter 14</td><td><a href="app14_projections.html">One line, five grids</a><br><span class="note">The line S–J on SVY21, UTM 48N, the Johor Cassini grid, the Peninsula RSO and Web Mercator, compared with the true line on the ellipsoid.</span></td></tr>
 <tr><td>App 15 · Chapter 15</td><td><a href="app15_ground.html">Grid distance or ground distance?</a><br><span class="note">Reduce a measured distance to the grid, or turn a design (grid) distance into the length to set out on the ground.</span></td></tr>
-<tr><td>App 16 · Chapter 16</td><td><a href="app16_diagnose.html">Why don't my coordinates agree? A diagnostic aid</a><br><span class="note">Compare the coordinates you expected for a mark with those you received. The size and direction of the difference usually tell you the cause.</span></td></tr></table></div>
+<tr><td>App 16 · Chapter 16</td><td><a href="app16_diagnose.html">Why don't my coordinates agree? Reading a mismatch</a><br><span class="note">Figure 16.1 as a calculator: enter the coordinates you expected and those you received; the size and direction of the difference point to the likely cause.</span></td></tr></table></div>
 </main>
 <footer>Companion app to <i>Datums, Coordinate Systems and Map Projections</i> by Yam Khoon Tor. &copy; 2026 Yam Khoon Tor. A teaching aid, provided without warranty: check results independently before use in survey work. The running-case points are illustrative.</footer>
 <script>

@@ -32,8 +32,12 @@ table.res th{font:600 12px system-ui,sans-serif;color:var(--quiet)}
 table.res td.v{text-align:right;white-space:nowrap}
 .note{font-size:13.5px;color:var(--quiet)}
 .exbar{margin-bottom:14px}.exb button{margin:0 6px 6px 0}.exb button.on{background:var(--accent);color:#fff}
+button:not(.on){background:transparent;color:var(--accent)}button.on{background:var(--accent);color:#fff}
 #exnote{margin:4px 0 0}
 table.res tr.hl td{background:#ffe9a8;font-weight:700}
+table.res td.txt{font:14px/1.45 Georgia,serif;white-space:normal}table.res td.txt p{margin:4px 0}
+#exspace .grid{grid-template-columns:minmax(260px,360px) 1fr}#sgiven textarea{width:100%;font:12px ui-monospace,monospace}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) table.res tr.hl td{background:#4a3b0c}}
 table.res tr.hl td:first-child{box-shadow:inset 4px 0 0 #d4a017}
 .try{background:var(--pale);border-radius:10px;padding:10px 14px;margin-top:16px;font-size:14px}
 .try b{color:var(--dark)}
@@ -47,7 +51,9 @@ footer{max-width:1100px;margin:10px auto 30px;padding:0 16px;font-size:12px;colo
 <body>
 <header><div class="num">App 8 · Chapter 8</div><h1>From a GNSS campaign to SVY21</h1><p>Bring a mark positioned in ITRF2020 today onto SVY21, by measuring the shift at SVY21 control marks observed in the same campaign.</p></header>
 <main>
-<div class="card exbar"><h2>Worked examples in the book</h2><div class="exb"><button class="ghost" onclick="EX(0)">Example 8.2</button> <button class="ghost" onclick="EX(1)">Example 8.1</button> <button class="ghost" onclick="EX(2)">Example 8.3, origin</button> <button class="ghost" onclick="EX(3)">8.3, BASE7</button> <button class="ghost" onclick="EX(4)">8.3, SNYU</button> <button class="ghost" onclick="EX(5)">8.3, SLYG</button> <button class="ghost" onclick="EX(6)">8.3, SSMK</button></div><p class="note" id="exnote">Press a button to load the values of a worked example in the book.</p></div>
+<div class="card exbar"><h2>Worked examples in the book</h2><div class="exb"><button class="ghost" onclick="EX(0)">Example 8.1</button> <button class="ghost" onclick="EX(1)">Example 8.2</button> <button class="ghost" onclick="EX(2)">Example 8.3, origin</button> <button class="ghost" onclick="EX(3)">8.3, BASE7</button> <button class="ghost" onclick="EX(4)">8.3, SNYU</button> <button class="ghost" onclick="EX(5)">8.3, SLYG</button> <button class="ghost" onclick="EX(6)">8.3, SSMK</button> <button class="ghost" id="bexp" onclick="EXPLORE()">Explore: all inputs and results</button></div><p class="note" id="exnote">Change any input and every result updates. Press an example to return to its solution.</p></div>
+<div id="exspace"></div>
+<div id="explore">
 <div class="grid">
  <div class="card"><h2>Control marks in the campaign</h2>
   <p class="note">Each mark has campaign coordinates (ITRF2020 at the campaign epoch) and published SVY21 coordinates. Illustrative values of Example 11.2.</p>
@@ -57,7 +63,7 @@ footer{max-width:1100px;margin:10px auto 30px;padding:0 16px;font-size:12px;colo
   <label>X, Y, Z in ITRF2020 (m)</label>
   <input id="bx" type="number" step="any"><input id="by" type="number" step="any" style="margin-top:4px"><input id="bz" type="number" step="any" style="margin-top:4px">
   <h2 style="margin-top:12px">Model estimate, for comparison</h2>
-  <label>Assumed epoch at which SVY21 coincided with the global frame</label><input id="t0" type="number" step="0.1" value="1994.0">
+  <label>Assumed epoch of SVY21 as ITRF2020 (illustration only, Section 8.4)</label><input id="t0" type="number" step="0.1" value="1994.0">
   <label>Campaign epoch</label><input id="t1" type="number" step="0.1">
   <button onclick="reset()">Mark S</button>
  </div>
@@ -76,6 +82,7 @@ footer{max-width:1100px;margin:10px auto 30px;padding:0 16px;font-size:12px;colo
 </div>
 <div class="try"><b>Try this.</b> The shift is close to one metre and nearly the same at every control mark: that is the plate motion since SVY21 was fixed, not an error. Add 30 mm to S2: its row stands out and the scatter grows, which is how a disturbed control mark is found. The model estimate is useful as a check, but only the measured shift ties the work to the published control.</div>
 
+</div>
 </main>
 <footer>Companion app to <i>Datums, Coordinate Systems and Map Projections</i> by Yam Khoon Tor. &copy; 2026 Yam Khoon Tor. A teaching aid, provided without warranty: check results independently before use in survey work. The running-case points are illustrative.</footer>
 <script>
@@ -346,24 +353,81 @@ const SVY = GEO.SVY21, WGS = GEO.ELLIPSOIDS.WGS84, GRS = GEO.ELLIPSOIDS.GRS80, E
 /* worked-example buttons */
 function S(id, v){ $(id).value = v; }
 function Dm(id, d, m, s){ $(id + "d").value = d; $(id + "m").value = m; $(id + "s").value = s; }
-let HL = [];
+let HL = [], CUR = -1;
 function hl(){
   document.querySelectorAll("table.res tr").forEach(tr => tr.classList.remove("hl"));
   if (!HL.length) return;
-  document.querySelectorAll("table.res").forEach(tb => { let head = "";
+  document.querySelectorAll("#explore table.res").forEach(tb => { let head = "";
     tb.querySelectorAll("tr").forEach(tr => { const th = tr.querySelector("th"); if (th) { head = th.textContent.trim(); return; }
       const td = tr.querySelector("td"); if (!td) return; const lab = td.textContent.trim();
-      for (const spec of HL) { let h = "", l = spec; const k = spec.indexOf(" > "); if (k >= 0) { h = spec.slice(0, k); l = spec.slice(k + 3); }
-        if (h && !head.startsWith(h)) continue;
-        const ok = l.endsWith("…") ? lab.startsWith(l.slice(0, -1)) : lab === l;
-        if (ok) { tr.classList.add("hl"); break; } } }); });
+      for (const spec of HL) { if (match(spec, head, lab)) { tr.classList.add("hl"); break; } } }); });
 }
-function EX(i){ EXS[i][0](); const f = document.querySelector(".grid input, .grid select"); if (f) f.dispatchEvent(new Event("input", {bubbles: true}));
-  $("exnote").innerHTML = EXS[i][1]; HL = EXS[i][2] || []; hl();
+function match(spec, head, lab){ let h = "", l = spec; const k = spec.indexOf(" > "); if (k >= 0) { h = spec.slice(0, k); l = spec.slice(k + 3); }
+  if (h && !head.startsWith(h.endsWith("…") ? h.slice(0, -1) : h)) return false;
+  return l.endsWith("…") ? lab.startsWith(l.slice(0, -1)) : lab === l; }
+/* find a result row in the calculator by "Header > Row" and return its value */
+function lookup(spec){
+  if (spec.startsWith("#")) { const e = $(spec.slice(1)); return e ? e.innerHTML : "—"; }
+  for (const tb of document.querySelectorAll("#explore table.res")) { let head = "";
+    for (const tr of tb.querySelectorAll("tr")) { const th = tr.querySelector("th"); if (th) { head = th.textContent.trim(); continue; }
+      const td = [...tr.querySelectorAll("td")]; if (!td.length) continue;
+      if (match(spec, head, td[0].textContent.trim())) return td.slice(1).map(x => x.innerHTML).join(" &nbsp; "); } }
+  return "—";
+}
+/* the solution space of one worked example */
+function mirror(id){ const o = $(id); if (!o) return document.createTextNode("?");
+  let m; if (o.tagName === "SELECT") { m = o.cloneNode(true); m.value = o.value; }
+  else if (o.tagName === "TEXTAREA") { m = document.createElement("textarea"); m.rows = o.rows; m.value = o.value; m.style.cssText = o.style.cssText; }
+  else { m = document.createElement("input"); m.type = o.type === "range" ? "number" : o.type; m.step = o.step || "any"; if (o.min) m.min = o.min; if (o.max) m.max = o.max; if (o.type === "checkbox") m.checked = o.checked; else m.value = o.value; }
+  m.removeAttribute("id"); m.dataset.src = id;
+  const go = () => { if (o.type === "checkbox") o.checked = m.checked; else o.value = m.value;
+    o.dispatchEvent(new Event("input", {bubbles: true})); o.dispatchEvent(new Event("change", {bubbles: true})); setTimeout(refresh, 0); };
+  m.addEventListener("input", go); m.addEventListener("change", go); return m; }
+function buildSpace(i){
+  const sol = (typeof SOL !== "undefined" && SOL[EXS[i][4]]) || null, box = $("exspace");
+  let g = '<div class="grid"><div><div class="card"><h2>Given</h2><div id="sgiven"></div><p class="note" style="margin-top:10px">Change a value and the solution follows.</p></div>';
+  g += EXS[i][3] ? `<div class="try"><b>Try this.</b> ${EXS[i][3]}</div>` : "";
+  g += '</div><div><div class="card"><h2>Solution</h2><table class="res" id="ssol"></table></div>';
+  g += `<div class="card" style="margin-top:12px"><h2>The book's values</h2><p class="note" style="margin:0">${EXS[i][1]}</p></div></div></div>`;
+  box.innerHTML = g;
+  const gv = $("sgiven");
+  for (const grp of (sol ? sol.given : [])) {
+    const lab = document.createElement("label"); lab.innerHTML = grp[0]; gv.appendChild(lab);
+    const ids = grp[1]; const row = document.createElement("div");
+    if (ids.length === 1 && $(ids[0]) && $(ids[0]).type === "checkbox") { row.className = "chk"; const m = mirror(ids[0]); row.appendChild(m); lab.remove(); const sp = document.createElement("span"); sp.innerHTML = grp[0]; row.appendChild(sp); }
+    else { row.className = ids.length === 3 && /d$/.test(ids[0]) ? "dms" : "row"; ids.forEach(id => row.appendChild(mirror(id))); }
+    gv.appendChild(row); }
+  refresh();
+}
+function refresh(){
+  if (CUR < 0) return;
+  document.querySelectorAll("#sgiven [data-src]").forEach(m => { if (m === document.activeElement) return; const o = $(m.dataset.src); if (!o) return;
+    if (o.type === "checkbox") m.checked = o.checked; else if (m.value !== o.value) m.value = o.value; });
+  const sol = (typeof SOL !== "undefined" && SOL[EXS[CUR][4]]) || null, t = $("ssol"); if (!t || !sol) return;
+  t.innerHTML = sol.items.map(it => it[0] === "#" ? `<tr><th colspan="2">${it[1]}</th></tr>` : it[1].startsWith("#") ?
+    `<tr${it[0] === "!" ? ' class="hl"' : ""}><td colspan="2" class="txt"><b>${it[2]}</b><br>${lookup(it[1])}</td></tr>` :
+    `<tr${it[0] === "!" ? ' class="hl"' : ""}><td>${it[2]}</td><td class="v">${lookup(it[1])}</td></tr>`).join("");
+}
+function EX(i){
+  CUR = i; EXS[i][0](); const f = document.querySelector("#explore input, #explore select"); if (f) f.dispatchEvent(new Event("input", {bubbles: true}));
+  HL = EXS[i][2] || []; hl();
+  document.querySelectorAll("button.on").forEach(b => b.classList.remove("on"));
   document.querySelectorAll(".exb button").forEach((b, j) => b.classList.toggle("on", j === i));
-  const r = document.querySelector("table.res tr.hl"); if (r && window.innerWidth < 760) r.scrollIntoView({behavior: "smooth", block: "center"}); }
-document.addEventListener("input", () => setTimeout(hl, 0));
-document.addEventListener("change", () => setTimeout(hl, 0));
+  $("explore").style.display = "none"; $("exspace").style.display = ""; $("exnote").style.display = "none";
+  buildSpace(i);
+}
+function EXPLORE(){
+  CUR = -1; HL = []; hl(); $("explore").style.display = ""; $("exspace").style.display = "none"; $("exnote").style.display = "";
+  document.querySelectorAll(".exb button").forEach(b => b.classList.toggle("on", b.id === "bexp"));
+}
+document.addEventListener("input", () => setTimeout(() => { hl(); refresh(); }, 0));
+document.addEventListener("change", () => setTimeout(() => { hl(); refresh(); }, 0));
+/* preset buttons in the calculator: the one pressed shows as selected; typing a new value clears it */
+const PRESETS = () => [...document.querySelectorAll("#explore button")];
+document.addEventListener("click", e => { const b = e.target.closest("button"); if (!b || !b.closest("#explore")) return;
+  PRESETS().forEach(x => x.classList.remove("on")); b.classList.add("on"); });
+document.addEventListener("input", e => { if (e.isTrusted && e.target.closest("#explore")) PRESETS().forEach(x => x.classList.remove("on")); }, true);
+window.addEventListener("load", () => { const p = PRESETS(); if (p.length) p[0].classList.add("on"); if (typeof EXS !== "undefined" && EXS.length) EX(0); });
 
 /* small user-interface helpers */
 const $ = id => document.getElementById(id);
@@ -428,13 +492,14 @@ function c8p(){ const lat = dmsIn("qlat"), lon = dmsIn("qlon"), h = val("qh");
 setDms("qlat", 1 + 22 / 60); setDms("qlon", 103 + 50 / 60);
 document.addEventListener("input", c8p); c8p();
 
-const EXS = [[function(){reset(); S("t0",1994.0); S("t1",2026.2);}, 'Alignment at 1994.0, campaign at 2026.2. The <b>Model estimate</b> row is Example 8.2 (0.927 m east, 0.243 m south, with the sign of ITRF to SVY21); the <b>Measured shift</b> row is the 0.924 m east and 0.247 m south found at S1–S3.', ['Model estimate > east, north', 'Measured shift > east, north, up', 'Model estimate > model minus measured']],
-[function(){Dm("qlat",1,22,2.915414); Dm("qlon",103,49,31.975227); S("qh",0);}, 'BASE7, the SVY21 datum point (Table 8.2): N 38 834.121, E 27 135.303 m, that is +89.549 m and −866.339 m from the projection origin (Example 8.1).', ['SVY21 grid > Northing', 'SVY21 grid > Easting', 'Minus the projection origin']],
-[function(){Dm("qlat",1,22,0); Dm("qlon",103,50,0); S("qh",0);}, 'The projection origin: former minus SVY21 −1.540 m N, +2.524 m E (Table 8.6, Example 8.3).', ['Former minus SVY21, ΔN, ΔE']],
-[function(){Dm("qlat",1,22,2.915414); Dm("qlon",103,49,31.975227); S("qh",0);}, 'BASE7: −1.533 m N, +2.525 m E (Table 8.6).', ['Former minus SVY21, ΔN, ΔE']],
-[function(){Dm("qlat",1,20,44.84810); Dm("qlon",103,40,47.91672); S("qh",0);}, 'SNYU, in the west: −1.401 m N, +2.535 m E (Table 8.6).', ['Former minus SVY21, ΔN, ΔE']],
-[function(){Dm("qlat",1,22,21.44707); Dm("qlon",103,58,18.00928); S("qh",0);}, 'SLYG, in the east: −1.667 m N, +2.504 m E (Table 8.6).', ['Former minus SVY21, ΔN, ΔE']],
-[function(){Dm("qlat",1,12,37.48752); Dm("qlon",103,46,31.49934); S("qh",0);}, 'SSMK, in the south: −1.483 m N, +2.395 m E (Table 8.6).', ['Former minus SVY21, ΔN, ΔE']]];
+const EXS = [[function(){Dm("qlat",1,22,2.915414); Dm("qlon",103,49,31.975227); S("qh",0);}, 'BASE7, the SVY21 datum point (Table 8.2): N 38 834.121, E 27 135.303 m, that is +89.549 m and −866.339 m from the projection origin (Example 8.1).', ['SVY21 grid > Northing', 'SVY21 grid > Easting', 'Minus the projection origin'], 'Change the latitude seconds by 1: the northing changes by about 30.7 m, the length of a second of latitude here.', 'Example 8.1'],
+[function(){reset(); S("t0",1994.0); S("t1",2026.2);}, 'SVY21 taken, for illustration only, as ITRF2020 at 1994.0 (Section 8.4); campaign at 2026.2. Measured at S1–S3: 0.924 m east and 0.247 m south (ITRF minus SVY21); model 0.927 m east, 0.243 m south; agreement within 3 mm (Example 8.2). The app shows SVY21 minus ITRF, so its signs are reversed.', ['Model estimate > east, north', 'Measured shift > east, north, up', 'Model estimate > model minus measured'], "Add 30 mm to S2's easting: its row stands out and the scatter grows. That is how a disturbed control mark is found.", 'Example 8.2'],
+[function(){Dm("qlat",1,22,0); Dm("qlon",103,50,0); S("qh",0);}, 'The projection origin: former minus SVY21 −1.540 m N, +2.524 m E (Table 8.7, Example 8.3).', ['Former minus SVY21, ΔN, ΔE'], 'Enter an ellipsoidal height of 40 m: ΔN and ΔE change by only 1–2 mm. Then try the other four buttons: the difference varies by under 0.3 m across the island.', 'Example 8.3, origin'],
+[function(){Dm("qlat",1,22,2.915414); Dm("qlon",103,49,31.975227); S("qh",0);}, 'BASE7: −1.533 m N, +2.525 m E (Table 8.7).', ['Former minus SVY21, ΔN, ΔE'], 'Enter an ellipsoidal height of 40 m: ΔN and ΔE change by only 1–2 mm.', '8.3, BASE7'],
+[function(){Dm("qlat",1,20,44.84810); Dm("qlon",103,40,47.91672); S("qh",0);}, 'SNYU, in the west: −1.401 m N, +2.535 m E (Table 8.7).', ['Former minus SVY21, ΔN, ΔE'], 'Compare with <i>8.3, SLYG</i>, at the other end of the island: ΔN differs by about 0.27 m, the largest variation in Table 8.6.', '8.3, SNYU'],
+[function(){Dm("qlat",1,22,21.44707); Dm("qlon",103,58,18.00928); S("qh",0);}, 'SLYG, in the east: −1.667 m N, +2.504 m E (Table 8.7).', ['Former minus SVY21, ΔN, ΔE'], 'Compare with <i>8.3, SNYU</i>, at the other end of the island: ΔN differs by about 0.27 m.', '8.3, SLYG'],
+[function(){Dm("qlat",1,12,37.48752); Dm("qlon",103,46,31.49934); S("qh",0);}, 'SSMK, in the south: −1.483 m N, +2.395 m E (Table 8.7).', ['Former minus SVY21, ΔN, ΔE'], 'Enter an ellipsoidal height of 40 m: ΔN and ΔE change by only 1–2 mm.', '8.3, SSMK']];
+const SOL = {"Example 8.1": {"given": [["BASE7 latitude (° ′ ″)", ["qlatd", "qlatm", "qlats"]], ["BASE7 longitude (° ′ ″)", ["qlond", "qlonm", "qlons"]]], "items": [["#", "Transverse Mercator forward, SVY21 definition", ""], ["!", "SVY21 grid… > Northing", "Northing"], ["!", "SVY21 grid… > Easting", "Easting"], ["#", "Compared with the projection origin", ""], ["!", "Minus the projection origin", "Minus the origin, ΔN, ΔE"]]}, "Example 8.2": {"given": [["Use S1", ["m0"]], ["Use S2", ["m1"]], ["Use S3", ["m2"]], ["Error added to S2 (mm)", ["blunder"]], ["Assumed epoch of SVY21 (illustration only, Section 8.4)", ["t0"]], ["Campaign epoch", ["t1"]]], "items": [["#", "Step 1. Measured shift at the three SVY21 marks", ""], ["!", "Measured shift… > east, north, up", "Mean shift, east, north, up"], ["r", "Measured shift… > largest scatter about the mean", "Largest scatter about the mean"], ["#", "Step 2. The plate-motion model over the same interval", ""], ["!", "Model estimate… > east, north", "Model, east, north"], ["#", "Step 3. Agreement", ""], ["!", "model minus measured", "Model minus measured"]]}, "Example 8.3, origin": {"given": [["Latitude (° ′ ″)", ["qlatd", "qlatm", "qlats"]], ["Longitude (° ′ ″)", ["qlond", "qlonm", "qlons"]], ["Ellipsoidal height (m)", ["qh"]]], "items": [["#", "Step 1. On SVY21", ""], ["r", "SVY21 grid… > Northing", "SVY21 northing"], ["r", "SVY21 grid… > Easting", "SVY21 easting"], ["#", "Step 2. Converted to Kertau, then to the former Cassini grid", ""], ["r", "Kertau latitude, longitude", "Kertau latitude, longitude"], ["r", "Former grid… > Northing", "Former northing"], ["r", "Former grid… > Easting", "Former easting"], ["#", "Step 3. The difference", ""], ["!", "Former minus SVY21, ΔN, ΔE", "Former minus SVY21, ΔN, ΔE"]]}, "8.3, BASE7": {"given": [["Latitude (° ′ ″)", ["qlatd", "qlatm", "qlats"]], ["Longitude (° ′ ″)", ["qlond", "qlonm", "qlons"]], ["Ellipsoidal height (m)", ["qh"]]], "items": [["#", "Step 1. On SVY21", ""], ["r", "SVY21 grid… > Northing", "SVY21 northing"], ["r", "SVY21 grid… > Easting", "SVY21 easting"], ["#", "Step 2. Converted to Kertau, then to the former Cassini grid", ""], ["r", "Kertau latitude, longitude", "Kertau latitude, longitude"], ["r", "Former grid… > Northing", "Former northing"], ["r", "Former grid… > Easting", "Former easting"], ["#", "Step 3. The difference", ""], ["!", "Former minus SVY21, ΔN, ΔE", "Former minus SVY21, ΔN, ΔE"]]}, "8.3, SNYU": {"given": [["Latitude (° ′ ″)", ["qlatd", "qlatm", "qlats"]], ["Longitude (° ′ ″)", ["qlond", "qlonm", "qlons"]], ["Ellipsoidal height (m)", ["qh"]]], "items": [["#", "Step 1. On SVY21", ""], ["r", "SVY21 grid… > Northing", "SVY21 northing"], ["r", "SVY21 grid… > Easting", "SVY21 easting"], ["#", "Step 2. Converted to Kertau, then to the former Cassini grid", ""], ["r", "Kertau latitude, longitude", "Kertau latitude, longitude"], ["r", "Former grid… > Northing", "Former northing"], ["r", "Former grid… > Easting", "Former easting"], ["#", "Step 3. The difference", ""], ["!", "Former minus SVY21, ΔN, ΔE", "Former minus SVY21, ΔN, ΔE"]]}, "8.3, SLYG": {"given": [["Latitude (° ′ ″)", ["qlatd", "qlatm", "qlats"]], ["Longitude (° ′ ″)", ["qlond", "qlonm", "qlons"]], ["Ellipsoidal height (m)", ["qh"]]], "items": [["#", "Step 1. On SVY21", ""], ["r", "SVY21 grid… > Northing", "SVY21 northing"], ["r", "SVY21 grid… > Easting", "SVY21 easting"], ["#", "Step 2. Converted to Kertau, then to the former Cassini grid", ""], ["r", "Kertau latitude, longitude", "Kertau latitude, longitude"], ["r", "Former grid… > Northing", "Former northing"], ["r", "Former grid… > Easting", "Former easting"], ["#", "Step 3. The difference", ""], ["!", "Former minus SVY21, ΔN, ΔE", "Former minus SVY21, ΔN, ΔE"]]}, "8.3, SSMK": {"given": [["Latitude (° ′ ″)", ["qlatd", "qlatm", "qlats"]], ["Longitude (° ′ ″)", ["qlond", "qlonm", "qlons"]], ["Ellipsoidal height (m)", ["qh"]]], "items": [["#", "Step 1. On SVY21", ""], ["r", "SVY21 grid… > Northing", "SVY21 northing"], ["r", "SVY21 grid… > Easting", "SVY21 easting"], ["#", "Step 2. Converted to Kertau, then to the former Cassini grid", ""], ["r", "Kertau latitude, longitude", "Kertau latitude, longitude"], ["r", "Former grid… > Northing", "Former northing"], ["r", "Former grid… > Easting", "Former easting"], ["#", "Step 3. The difference", ""], ["!", "Former minus SVY21, ΔN, ΔE", "Former minus SVY21, ΔN, ΔE"]]}};
 
 </script>
 </body>

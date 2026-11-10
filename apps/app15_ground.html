@@ -32,8 +32,12 @@ table.res th{font:600 12px system-ui,sans-serif;color:var(--quiet)}
 table.res td.v{text-align:right;white-space:nowrap}
 .note{font-size:13.5px;color:var(--quiet)}
 .exbar{margin-bottom:14px}.exb button{margin:0 6px 6px 0}.exb button.on{background:var(--accent);color:#fff}
+button:not(.on){background:transparent;color:var(--accent)}button.on{background:var(--accent);color:#fff}
 #exnote{margin:4px 0 0}
 table.res tr.hl td{background:#ffe9a8;font-weight:700}
+table.res td.txt{font:14px/1.45 Georgia,serif;white-space:normal}table.res td.txt p{margin:4px 0}
+#exspace .grid{grid-template-columns:minmax(260px,360px) 1fr}#sgiven textarea{width:100%;font:12px ui-monospace,monospace}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) table.res tr.hl td{background:#4a3b0c}}
 table.res tr.hl td:first-child{box-shadow:inset 4px 0 0 #d4a017}
 .try{background:var(--pale);border-radius:10px;padding:10px 14px;margin-top:16px;font-size:14px}
 .try b{color:var(--dark)}
@@ -47,7 +51,9 @@ footer{max-width:1100px;margin:10px auto 30px;padding:0 16px;font-size:12px;colo
 <body>
 <header><div class="num">App 15 · Chapter 15</div><h1>Grid distance or ground distance?</h1><p>Reduce a measured distance to the grid, or turn a design (grid) distance into the length to set out on the ground.</p></header>
 <main>
-<div class="card exbar"><h2>Worked examples in the book</h2><div class="exb"><button class="ghost" onclick="EX(0)">Example 15.1</button> <button class="ghost" onclick="EX(1)">Example 15.2</button> <button class="ghost" onclick="EX(2)">Example 15.3</button> <button class="ghost" onclick="EX(3)">Example 15.4</button> <button class="ghost" onclick="EX(4)">Example 15.5, SVY21</button> <button class="ghost" onclick="EX(5)">Example 15.5, UTM</button></div><p class="note" id="exnote">Press a button to load the values of a worked example in the book.</p></div>
+<div class="card exbar"><h2>Worked examples in the book</h2><div class="exb"><button class="ghost" onclick="EX(0)">Example 15.1</button> <button class="ghost" onclick="EX(1)">Example 15.2</button> <button class="ghost" onclick="EX(2)">Example 15.3</button> <button class="ghost" onclick="EX(3)">Example 15.4</button> <button class="ghost" onclick="EX(4)">Example 15.5, SVY21</button> <button class="ghost" onclick="EX(5)">Example 15.5, UTM</button> <button class="ghost" id="bexp" onclick="EXPLORE()">Explore: all inputs and results</button></div><p class="note" id="exnote">Change any input and every result updates. Press an example to return to its solution.</p></div>
+<div id="exspace"></div>
+<div id="explore">
 <div class="grid">
  <div class="card"><h2>The line</h2>
   <label>Direction</label><select id="mode"><option value="g2g">measured on the ground → grid</option><option value="grid2">grid (design) → ground (setting out)</option></select>
@@ -57,7 +63,7 @@ footer{max-width:1100px;margin:10px auto 30px;padding:0 16px;font-size:12px;colo
   <label>Geoid undulation N (m)</label><input id="N" type="number" step="any">
   <label>Grid eastings of the two ends (m)</label><div class="row"><input id="e1" type="number" step="any"><input id="e2" type="number" step="any"></div>
   <label>Grid</label><select id="grid"><option value="svy">SVY21 (k0 = 1, E0 = 28 001.642)</option><option value="utm">UTM 48N (k0 = 0.9996, E0 = 500 000)</option></select>
-  <button onclick="ex151()">Example 15.1</button> <button class="ghost" onclick="bridge()">Bridge deck S to J</button>
+  <button onclick="ex151()">Line A to B′</button> <button onclick="bridge()">Bridge deck S to J</button>
  </div>
  <div>
   <div class="card"><h2>Results</h2><table class="res" id="out"></table></div>
@@ -74,6 +80,7 @@ footer{max-width:1100px;margin:10px auto 30px;padding:0 16px;font-size:12px;colo
 </div>
 <div class="try"><b>Try this.</b> On SVY21 the two corrections nearly cancel near sea level: the difference between grid and ground is a few millimetres a kilometre. Raise the reduced levels to 100 m (a tall building): the elevation factor alone is −17 ppm. Switch to UTM and type UTM eastings (about 350 000 m): the grid distance is 17 cm per kilometre short, and setting out from UTM coordinates without the correction puts the far pier in the wrong place.</div>
 
+</div>
 </main>
 <footer>Companion app to <i>Datums, Coordinate Systems and Map Projections</i> by Yam Khoon Tor. &copy; 2026 Yam Khoon Tor. A teaching aid, provided without warranty: check results independently before use in survey work. The running-case points are illustrative.</footer>
 <script>
@@ -344,24 +351,81 @@ const SVY = GEO.SVY21, WGS = GEO.ELLIPSOIDS.WGS84, GRS = GEO.ELLIPSOIDS.GRS80, E
 /* worked-example buttons */
 function S(id, v){ $(id).value = v; }
 function Dm(id, d, m, s){ $(id + "d").value = d; $(id + "m").value = m; $(id + "s").value = s; }
-let HL = [];
+let HL = [], CUR = -1;
 function hl(){
   document.querySelectorAll("table.res tr").forEach(tr => tr.classList.remove("hl"));
   if (!HL.length) return;
-  document.querySelectorAll("table.res").forEach(tb => { let head = "";
+  document.querySelectorAll("#explore table.res").forEach(tb => { let head = "";
     tb.querySelectorAll("tr").forEach(tr => { const th = tr.querySelector("th"); if (th) { head = th.textContent.trim(); return; }
       const td = tr.querySelector("td"); if (!td) return; const lab = td.textContent.trim();
-      for (const spec of HL) { let h = "", l = spec; const k = spec.indexOf(" > "); if (k >= 0) { h = spec.slice(0, k); l = spec.slice(k + 3); }
-        if (h && !head.startsWith(h)) continue;
-        const ok = l.endsWith("…") ? lab.startsWith(l.slice(0, -1)) : lab === l;
-        if (ok) { tr.classList.add("hl"); break; } } }); });
+      for (const spec of HL) { if (match(spec, head, lab)) { tr.classList.add("hl"); break; } } }); });
 }
-function EX(i){ EXS[i][0](); const f = document.querySelector(".grid input, .grid select"); if (f) f.dispatchEvent(new Event("input", {bubbles: true}));
-  $("exnote").innerHTML = EXS[i][1]; HL = EXS[i][2] || []; hl();
+function match(spec, head, lab){ let h = "", l = spec; const k = spec.indexOf(" > "); if (k >= 0) { h = spec.slice(0, k); l = spec.slice(k + 3); }
+  if (h && !head.startsWith(h.endsWith("…") ? h.slice(0, -1) : h)) return false;
+  return l.endsWith("…") ? lab.startsWith(l.slice(0, -1)) : lab === l; }
+/* find a result row in the calculator by "Header > Row" and return its value */
+function lookup(spec){
+  if (spec.startsWith("#")) { const e = $(spec.slice(1)); return e ? e.innerHTML : "—"; }
+  for (const tb of document.querySelectorAll("#explore table.res")) { let head = "";
+    for (const tr of tb.querySelectorAll("tr")) { const th = tr.querySelector("th"); if (th) { head = th.textContent.trim(); continue; }
+      const td = [...tr.querySelectorAll("td")]; if (!td.length) continue;
+      if (match(spec, head, td[0].textContent.trim())) return td.slice(1).map(x => x.innerHTML).join(" &nbsp; "); } }
+  return "—";
+}
+/* the solution space of one worked example */
+function mirror(id){ const o = $(id); if (!o) return document.createTextNode("?");
+  let m; if (o.tagName === "SELECT") { m = o.cloneNode(true); m.value = o.value; }
+  else if (o.tagName === "TEXTAREA") { m = document.createElement("textarea"); m.rows = o.rows; m.value = o.value; m.style.cssText = o.style.cssText; }
+  else { m = document.createElement("input"); m.type = o.type === "range" ? "number" : o.type; m.step = o.step || "any"; if (o.min) m.min = o.min; if (o.max) m.max = o.max; if (o.type === "checkbox") m.checked = o.checked; else m.value = o.value; }
+  m.removeAttribute("id"); m.dataset.src = id;
+  const go = () => { if (o.type === "checkbox") o.checked = m.checked; else o.value = m.value;
+    o.dispatchEvent(new Event("input", {bubbles: true})); o.dispatchEvent(new Event("change", {bubbles: true})); setTimeout(refresh, 0); };
+  m.addEventListener("input", go); m.addEventListener("change", go); return m; }
+function buildSpace(i){
+  const sol = (typeof SOL !== "undefined" && SOL[EXS[i][4]]) || null, box = $("exspace");
+  let g = '<div class="grid"><div><div class="card"><h2>Given</h2><div id="sgiven"></div><p class="note" style="margin-top:10px">Change a value and the solution follows.</p></div>';
+  g += EXS[i][3] ? `<div class="try"><b>Try this.</b> ${EXS[i][3]}</div>` : "";
+  g += '</div><div><div class="card"><h2>Solution</h2><table class="res" id="ssol"></table></div>';
+  g += `<div class="card" style="margin-top:12px"><h2>The book's values</h2><p class="note" style="margin:0">${EXS[i][1]}</p></div></div></div>`;
+  box.innerHTML = g;
+  const gv = $("sgiven");
+  for (const grp of (sol ? sol.given : [])) {
+    const lab = document.createElement("label"); lab.innerHTML = grp[0]; gv.appendChild(lab);
+    const ids = grp[1]; const row = document.createElement("div");
+    if (ids.length === 1 && $(ids[0]) && $(ids[0]).type === "checkbox") { row.className = "chk"; const m = mirror(ids[0]); row.appendChild(m); lab.remove(); const sp = document.createElement("span"); sp.innerHTML = grp[0]; row.appendChild(sp); }
+    else { row.className = ids.length === 3 && /d$/.test(ids[0]) ? "dms" : "row"; ids.forEach(id => row.appendChild(mirror(id))); }
+    gv.appendChild(row); }
+  refresh();
+}
+function refresh(){
+  if (CUR < 0) return;
+  document.querySelectorAll("#sgiven [data-src]").forEach(m => { if (m === document.activeElement) return; const o = $(m.dataset.src); if (!o) return;
+    if (o.type === "checkbox") m.checked = o.checked; else if (m.value !== o.value) m.value = o.value; });
+  const sol = (typeof SOL !== "undefined" && SOL[EXS[CUR][4]]) || null, t = $("ssol"); if (!t || !sol) return;
+  t.innerHTML = sol.items.map(it => it[0] === "#" ? `<tr><th colspan="2">${it[1]}</th></tr>` : it[1].startsWith("#") ?
+    `<tr${it[0] === "!" ? ' class="hl"' : ""}><td colspan="2" class="txt"><b>${it[2]}</b><br>${lookup(it[1])}</td></tr>` :
+    `<tr${it[0] === "!" ? ' class="hl"' : ""}><td>${it[2]}</td><td class="v">${lookup(it[1])}</td></tr>`).join("");
+}
+function EX(i){
+  CUR = i; EXS[i][0](); const f = document.querySelector("#explore input, #explore select"); if (f) f.dispatchEvent(new Event("input", {bubbles: true}));
+  HL = EXS[i][2] || []; hl();
+  document.querySelectorAll("button.on").forEach(b => b.classList.remove("on"));
   document.querySelectorAll(".exb button").forEach((b, j) => b.classList.toggle("on", j === i));
-  const r = document.querySelector("table.res tr.hl"); if (r && window.innerWidth < 760) r.scrollIntoView({behavior: "smooth", block: "center"}); }
-document.addEventListener("input", () => setTimeout(hl, 0));
-document.addEventListener("change", () => setTimeout(hl, 0));
+  $("explore").style.display = "none"; $("exspace").style.display = ""; $("exnote").style.display = "none";
+  buildSpace(i);
+}
+function EXPLORE(){
+  CUR = -1; HL = []; hl(); $("explore").style.display = ""; $("exspace").style.display = "none"; $("exnote").style.display = "";
+  document.querySelectorAll(".exb button").forEach(b => b.classList.toggle("on", b.id === "bexp"));
+}
+document.addEventListener("input", () => setTimeout(() => { hl(); refresh(); }, 0));
+document.addEventListener("change", () => setTimeout(() => { hl(); refresh(); }, 0));
+/* preset buttons in the calculator: the one pressed shows as selected; typing a new value clears it */
+const PRESETS = () => [...document.querySelectorAll("#explore button")];
+document.addEventListener("click", e => { const b = e.target.closest("button"); if (!b || !b.closest("#explore")) return;
+  PRESETS().forEach(x => x.classList.remove("on")); b.classList.add("on"); });
+document.addEventListener("input", e => { if (e.isTrusted && e.target.closest("#explore")) PRESETS().forEach(x => x.classList.remove("on")); }, true);
+window.addEventListener("load", () => { const p = PRESETS(); if (p.length) p[0].classList.add("on"); if (typeof EXS !== "undefined" && EXS.length) EX(0); });
 
 /* small user-interface helpers */
 const $ = id => document.getElementById(id);
@@ -413,12 +477,13 @@ function cpg(){ const ce = val("pce"), cn = val("pcn"), f = val("pf"), e = val("
     ["Distance from the centre, project grid", F(Math.hypot(Ep - ce, Np - cn), 4) + " m"], ["Distance from the centre, SVY21 grid", F(Math.hypot(e - ce, n - cn), 4) + " m"]]); }
 document.addEventListener("input", cpg); cpg();
 
-const EXS = [[function(){ex151();}, 'A measured slope distance of 1 254.386 m reduced to the SVY21 grid. Compare each factor and the grid distance with Example 15.1.', ['Horizontal distance', 'Elevation factor…', 'Line scale factor', 'Combined', 'Grid distance']],
-[function(){S("mode","grid2"); S("d",350); S("rl1",14); S("rl2",14); S("hi",0); S("ht",0); S("N",9.7); S("e1",4200); S("e2",4520); S("grid","svy");}, 'Setting out in Tuas: grid 350.000 m, works at RL 14.0 m. Ground distance 349.9989 m (Example 15.2).', ['Elevation factor…', 'Line scale factor', 'Combined', 'Ground (horizontal) distance to set out']],
-[function(){ex151(); S("e1",350704); S("e2",351917); S("grid","utm");}, "Example 15.1's line on UTM 48N: grid distance 1 253.6044 m, 167 mm short of the ground (Example 15.3).", ['Line scale factor', 'Combined', 'Grid distance', 'Grid minus ground']],
-[function(){S("mode","grid2"); S("d",500); S("rl1",120); S("rl2",120); S("hi",0); S("ht",0); S("N",9.7); S("e1",20750); S("e2",21250); S("grid","svy"); S("pce",21000); S("pcn",36500); S("pf",0.9999802); S("ppe",21300); S("ppn",36900);}, 'A high site at RL 120 m centred at E 21 000, N 36 500 (Example 15.4): EF −20.40 ppm, k +0.61 ppm, combined −19.80 ppm, 9.9 mm over 500 m. On the project grid the point E 21 300, N 36 900 becomes E 21 300.0059, N 36 900.0079, 500.0099 m from the centre.', ['Elevation factor…', 'Line scale factor', 'Combined', 'Ground minus grid', 'Project easting E_p', 'Project northing N_p', 'Distance from the centre, project grid']],
-[function(){bridge();}, 'The bridge deck from the SVY21 grid length: 1 457.9565 m at deck level (Example 15.5).', ['Elevation factor…', 'Line scale factor', 'Combined', 'Ground (horizontal) distance to set out', 'Ground minus grid']],
-[function(){bridge(); const a = GEO.utm(CASE.S.lat, CASE.S.lon, ...WGS), b = GEO.utm(CASE.J.lat, CASE.J.lon, ...WGS); S("d", Math.hypot(b.N - a.N, b.E - a.E).toFixed(3)); S("e1", a.E.toFixed(3)); S("e2", b.E.toFixed(3)); S("grid","utm");}, 'The same deck from the UTM grid length, 1 457.704 m: the ground length is again 1 457.9565 m, but the correction is 252.5 mm instead of 5.5 mm (Example 15.5).', ['Elevation factor…', 'Line scale factor', 'Combined', 'Ground (horizontal) distance to set out', 'Ground minus grid']]];
+const EXS = [[function(){ex151();}, 'A measured slope distance of 1 254.386 m reduced to the SVY21 grid. Compare each factor and the grid distance with Example 15.1.', ['Horizontal distance', 'Elevation factor…', 'Line scale factor', 'Combined', 'Grid distance'], 'Raise both reduced levels by 100 m: the elevation factor alone becomes about −22 ppm and outweighs the scale.', 'Example 15.1'],
+[function(){S("mode","grid2"); S("d",350); S("rl1",14); S("rl2",14); S("hi",0); S("ht",0); S("N",9.7); S("e1",4200); S("e2",4520); S("grid","svy");}, 'Setting out in Tuas: grid 350.000 m, works at RL 14.0 m. Ground distance 349.9989 m (Example 15.2).', ['Elevation factor…', 'Line scale factor', 'Combined', 'Ground (horizontal) distance to set out'], 'Change the works level from 14.0 to 100 m: the ground distance becomes longer than the grid distance, because height now outweighs scale.', 'Example 15.2'],
+[function(){ex151(); S("e1",350704); S("e2",351917); S("grid","utm");}, "Example 15.1's line on UTM 48N: grid distance 1 253.6044 m, 167 mm short of the ground (Example 15.3).", ['Line scale factor', 'Combined', 'Grid distance', 'Grid minus ground'], 'Switch back to SVY21 with the SVY21 eastings: the same line is 3 mm short instead of 167 mm.', 'Example 15.3'],
+[function(){S("mode","grid2"); S("d",500); S("rl1",120); S("rl2",120); S("hi",0); S("ht",0); S("N",9.7); S("e1",20750); S("e2",21250); S("grid","svy"); S("pce",21000); S("pcn",36500); S("pf",0.9999802); S("ppe",21300); S("ppn",36900);}, 'A high site at RL 120 m centred at E 21 000, N 36 500 (Example 15.4): EF −20.40 ppm, k +0.61 ppm, combined −19.80 ppm, 9.9 mm over 500 m. On the project grid the point E 21 300, N 36 900 becomes E 21 300.0059, N 36 900.0079, 500.0099 m from the centre.', ['Elevation factor…', 'Line scale factor', 'Combined', 'Ground minus grid', 'Project easting E_p', 'Project northing N_p', 'Distance from the centre, project grid'], 'Change the reduced level from 120 to 20 m: the combined factor falls to a few ppm and a project grid is no longer needed.', 'Example 15.4'],
+[function(){bridge();}, 'The bridge deck from the SVY21 grid length: 1 457.9565 m at deck level (Example 15.5).', ['Elevation factor…', 'Line scale factor', 'Combined', 'Ground (horizontal) distance to set out', 'Ground minus grid'], 'Press <i>Example 15.5, UTM</i>: the ground length is the same 1 457.9565 m; only the size of the correction changes.', 'Example 15.5, SVY21'],
+[function(){bridge(); const a = GEO.utm(CASE.S.lat, CASE.S.lon, ...WGS), b = GEO.utm(CASE.J.lat, CASE.J.lon, ...WGS); S("d", Math.hypot(b.N - a.N, b.E - a.E).toFixed(3)); S("e1", a.E.toFixed(3)); S("e2", b.E.toFixed(3)); S("grid","utm");}, 'The same deck from the UTM grid length, 1 457.704 m: the ground length is again 1 457.9565 m, but the correction is 252.5 mm instead of 5.5 mm (Example 15.5).', ['Elevation factor…', 'Line scale factor', 'Combined', 'Ground (horizontal) distance to set out', 'Ground minus grid'], 'Press <i>Example 15.5, SVY21</i>: the same deck, with a correction of 5.5 mm instead of 252.5 mm.', 'Example 15.5, UTM']];
+const SOL = {"Example 15.1": {"given": [["Direction", ["mode"]], ["Slope distance measured (m)", ["d"]], ["Reduced levels of A and B (m)", ["rl1", "rl2"]], ["Instrument height, target height (m)", ["hi", "ht"]], ["Geoid undulation N (m)", ["N"]], ["Grid eastings of A and B (m)", ["e1", "e2"]], ["Grid", ["grid"]]], "items": [["#", "Step 1. Horizontal distance", ""], ["!", "Horizontal distance", "Horizontal distance"], ["#", "Step 2. Elevation factor", ""], ["!", "Elevation factor…", "Elevation factor R / (R + h)"], ["#", "Step 3. Line scale factor", ""], ["!", "Line scale factor", "Line scale factor K"], ["#", "Step 4. Combined factor and grid distance", ""], ["!", "Combined", "Combined factor"], ["!", "Grid distance", "Grid distance"], ["r", "Grid minus ground", "Grid minus ground"]]}, "Example 15.2": {"given": [["Direction", ["mode"]], ["Grid distance (m)", ["d"]], ["Works level at both ends (m)", ["rl1", "rl2"]], ["Geoid undulation N (m)", ["N"]], ["Grid eastings of the two ends (m)", ["e1", "e2"]], ["Grid", ["grid"]]], "items": [["#", "Step 1. Factors", ""], ["!", "Elevation factor…", "Elevation factor"], ["!", "Line scale factor", "Line scale factor"], ["!", "Combined", "Combined factor"], ["#", "Step 2. Ground distance = grid distance / combined factor", ""], ["!", "Ground (horizontal) distance to set out", "Ground distance to set out"], ["r", "Ground minus grid", "Ground minus grid"]]}, "Example 15.3": {"given": [["Direction", ["mode"]], ["Slope distance measured (m)", ["d"]], ["Reduced levels of A and B (m)", ["rl1", "rl2"]], ["Instrument height, target height (m)", ["hi", "ht"]], ["Geoid undulation N (m)", ["N"]], ["UTM eastings of A and B (m)", ["e1", "e2"]], ["Grid", ["grid"]]], "items": [["#", "Steps 1–2 as Example 15.1", ""], ["r", "Horizontal distance", "Horizontal distance"], ["r", "Elevation factor…", "Elevation factor"], ["#", "Step 3. Line scale factor on UTM", ""], ["!", "Line scale factor", "Line scale factor K"], ["#", "Step 4. Combined factor and grid distance", ""], ["!", "Combined", "Combined factor"], ["!", "Grid distance", "Grid distance"], ["!", "Grid minus ground", "Grid minus ground"]]}, "Example 15.4": {"given": [["Direction", ["mode"]], ["Grid distance (m)", ["d"]], ["Reduced level of the site (m)", ["rl1", "rl2"]], ["Geoid undulation N (m)", ["N"]], ["Grid eastings (m)", ["e1", "e2"]], ["Centre: SVY21 easting, northing (m)", ["pce", "pcn"]], ["Combined factor at the site", ["pf"]], ["A point: SVY21 easting, northing (m)", ["ppe", "ppn"]]], "items": [["#", "Step 1. The combined factor at the site", ""], ["!", "Elevation factor…", "Elevation factor"], ["!", "Line scale factor", "Line scale factor"], ["!", "Combined", "Combined factor"], ["!", "Ground minus grid", "Effect over 500 m"], ["#", "Step 2. A project grid scaled about the centre", ""], ["!", "Project easting E_p", "Project easting E_p"], ["!", "Project northing N_p", "Project northing N_p"], ["!", "Distance from the centre, project grid", "Distance from the centre, project grid"], ["r", "Distance from the centre, SVY21 grid", "Distance from the centre, SVY21 grid"]]}, "Example 15.5, SVY21": {"given": [["Direction", ["mode"]], ["SVY21 grid span S–J (m)", ["d"]], ["Deck level at both ends (m)", ["rl1", "rl2"]], ["Geoid undulation N (m)", ["N"]], ["SVY21 eastings of S and J (m)", ["e1", "e2"]], ["Grid", ["grid"]]], "items": [["#", "Factors on SVY21", ""], ["!", "Elevation factor…", "Elevation factor"], ["!", "Line scale factor", "Line scale factor"], ["!", "Combined", "Combined factor"], ["#", "Deck length", ""], ["!", "Ground (horizontal) distance to set out", "Ground length of the deck"], ["!", "Ground minus grid", "Ground minus grid"]]}, "Example 15.5, UTM": {"given": [["Direction", ["mode"]], ["UTM grid span S–J (m)", ["d"]], ["Deck level at both ends (m)", ["rl1", "rl2"]], ["Geoid undulation N (m)", ["N"]], ["UTM eastings of S and J (m)", ["e1", "e2"]], ["Grid", ["grid"]]], "items": [["#", "Factors on UTM 48N", ""], ["!", "Elevation factor…", "Elevation factor"], ["!", "Line scale factor", "Line scale factor"], ["!", "Combined", "Combined factor"], ["#", "Deck length", ""], ["!", "Ground (horizontal) distance to set out", "Ground length of the deck"], ["!", "Ground minus grid", "Ground minus grid"]]}};
 
 </script>
 </body>

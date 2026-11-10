@@ -32,8 +32,12 @@ table.res th{font:600 12px system-ui,sans-serif;color:var(--quiet)}
 table.res td.v{text-align:right;white-space:nowrap}
 .note{font-size:13.5px;color:var(--quiet)}
 .exbar{margin-bottom:14px}.exb button{margin:0 6px 6px 0}.exb button.on{background:var(--accent);color:#fff}
+button:not(.on){background:transparent;color:var(--accent)}button.on{background:var(--accent);color:#fff}
 #exnote{margin:4px 0 0}
 table.res tr.hl td{background:#ffe9a8;font-weight:700}
+table.res td.txt{font:14px/1.45 Georgia,serif;white-space:normal}table.res td.txt p{margin:4px 0}
+#exspace .grid{grid-template-columns:minmax(260px,360px) 1fr}#sgiven textarea{width:100%;font:12px ui-monospace,monospace}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) table.res tr.hl td{background:#4a3b0c}}
 table.res tr.hl td:first-child{box-shadow:inset 4px 0 0 #d4a017}
 .try{background:var(--pale);border-radius:10px;padding:10px 14px;margin-top:16px;font-size:14px}
 .try b{color:var(--dark)}
@@ -47,7 +51,9 @@ footer{max-width:1100px;margin:10px auto 30px;padding:0 16px;font-size:12px;colo
 <body>
 <header><div class="num">App 3 · Chapter 3</div><h1>From latitude and longitude to X, Y, Z and to east, north, up</h1><p>The line from S to J, computed three ways: as a Cartesian vector, in local east-north-up, and on the ellipsoid.</p></header>
 <main>
-<div class="card exbar"><h2>Worked examples in the book</h2><div class="exb"><button class="ghost" onclick="EX(0)">Example 3.1</button> <button class="ghost" onclick="EX(1)">Example 3.2</button> <button class="ghost" onclick="EX(2)">Example 3.3</button></div><p class="note" id="exnote">Press a button to load the values of a worked example in the book.</p></div>
+<div class="card exbar"><h2>Worked examples in the book</h2><div class="exb"><button class="ghost" onclick="EX(0)">Example 3.1</button> <button class="ghost" onclick="EX(1)">Example 3.2</button> <button class="ghost" onclick="EX(2)">Example 3.3</button> <button class="ghost" id="bexp" onclick="EXPLORE()">Explore: all inputs and results</button></div><p class="note" id="exnote">Change any input and every result updates. Press an example to return to its solution.</p></div>
+<div id="exspace"></div>
+<div id="explore">
 <div class="grid">
  <div class="card"><h2>Two points (SVY21, WGS84 ellipsoid)</h2>
   <b>From (station)</b>
@@ -67,6 +73,7 @@ footer{max-width:1100px;margin:10px auto 30px;padding:0 16px;font-size:12px;colo
 </div>
 <div class="try"><b>Try this.</b> Raise the target height by 100 m: the slope distance and zenith angle change, the distance on the ellipsoid does not. Move the target 1" of longitude east: it moves 30.9 m east. Note that the azimuth from east-north-up and from Vincenty's geodesic agree to a fraction of a second over 1.5 km.</div>
 
+</div>
 </main>
 <footer>Companion app to <i>Datums, Coordinate Systems and Map Projections</i> by Yam Khoon Tor. &copy; 2026 Yam Khoon Tor. A teaching aid, provided without warranty: check results independently before use in survey work. The running-case points are illustrative.</footer>
 <script>
@@ -337,24 +344,81 @@ const SVY = GEO.SVY21, WGS = GEO.ELLIPSOIDS.WGS84, GRS = GEO.ELLIPSOIDS.GRS80, E
 /* worked-example buttons */
 function S(id, v){ $(id).value = v; }
 function Dm(id, d, m, s){ $(id + "d").value = d; $(id + "m").value = m; $(id + "s").value = s; }
-let HL = [];
+let HL = [], CUR = -1;
 function hl(){
   document.querySelectorAll("table.res tr").forEach(tr => tr.classList.remove("hl"));
   if (!HL.length) return;
-  document.querySelectorAll("table.res").forEach(tb => { let head = "";
+  document.querySelectorAll("#explore table.res").forEach(tb => { let head = "";
     tb.querySelectorAll("tr").forEach(tr => { const th = tr.querySelector("th"); if (th) { head = th.textContent.trim(); return; }
       const td = tr.querySelector("td"); if (!td) return; const lab = td.textContent.trim();
-      for (const spec of HL) { let h = "", l = spec; const k = spec.indexOf(" > "); if (k >= 0) { h = spec.slice(0, k); l = spec.slice(k + 3); }
-        if (h && !head.startsWith(h)) continue;
-        const ok = l.endsWith("…") ? lab.startsWith(l.slice(0, -1)) : lab === l;
-        if (ok) { tr.classList.add("hl"); break; } } }); });
+      for (const spec of HL) { if (match(spec, head, lab)) { tr.classList.add("hl"); break; } } }); });
 }
-function EX(i){ EXS[i][0](); const f = document.querySelector(".grid input, .grid select"); if (f) f.dispatchEvent(new Event("input", {bubbles: true}));
-  $("exnote").innerHTML = EXS[i][1]; HL = EXS[i][2] || []; hl();
+function match(spec, head, lab){ let h = "", l = spec; const k = spec.indexOf(" > "); if (k >= 0) { h = spec.slice(0, k); l = spec.slice(k + 3); }
+  if (h && !head.startsWith(h.endsWith("…") ? h.slice(0, -1) : h)) return false;
+  return l.endsWith("…") ? lab.startsWith(l.slice(0, -1)) : lab === l; }
+/* find a result row in the calculator by "Header > Row" and return its value */
+function lookup(spec){
+  if (spec.startsWith("#")) { const e = $(spec.slice(1)); return e ? e.innerHTML : "—"; }
+  for (const tb of document.querySelectorAll("#explore table.res")) { let head = "";
+    for (const tr of tb.querySelectorAll("tr")) { const th = tr.querySelector("th"); if (th) { head = th.textContent.trim(); continue; }
+      const td = [...tr.querySelectorAll("td")]; if (!td.length) continue;
+      if (match(spec, head, td[0].textContent.trim())) return td.slice(1).map(x => x.innerHTML).join(" &nbsp; "); } }
+  return "—";
+}
+/* the solution space of one worked example */
+function mirror(id){ const o = $(id); if (!o) return document.createTextNode("?");
+  let m; if (o.tagName === "SELECT") { m = o.cloneNode(true); m.value = o.value; }
+  else if (o.tagName === "TEXTAREA") { m = document.createElement("textarea"); m.rows = o.rows; m.value = o.value; m.style.cssText = o.style.cssText; }
+  else { m = document.createElement("input"); m.type = o.type === "range" ? "number" : o.type; m.step = o.step || "any"; if (o.min) m.min = o.min; if (o.max) m.max = o.max; if (o.type === "checkbox") m.checked = o.checked; else m.value = o.value; }
+  m.removeAttribute("id"); m.dataset.src = id;
+  const go = () => { if (o.type === "checkbox") o.checked = m.checked; else o.value = m.value;
+    o.dispatchEvent(new Event("input", {bubbles: true})); o.dispatchEvent(new Event("change", {bubbles: true})); setTimeout(refresh, 0); };
+  m.addEventListener("input", go); m.addEventListener("change", go); return m; }
+function buildSpace(i){
+  const sol = (typeof SOL !== "undefined" && SOL[EXS[i][4]]) || null, box = $("exspace");
+  let g = '<div class="grid"><div><div class="card"><h2>Given</h2><div id="sgiven"></div><p class="note" style="margin-top:10px">Change a value and the solution follows.</p></div>';
+  g += EXS[i][3] ? `<div class="try"><b>Try this.</b> ${EXS[i][3]}</div>` : "";
+  g += '</div><div><div class="card"><h2>Solution</h2><table class="res" id="ssol"></table></div>';
+  g += `<div class="card" style="margin-top:12px"><h2>The book's values</h2><p class="note" style="margin:0">${EXS[i][1]}</p></div></div></div>`;
+  box.innerHTML = g;
+  const gv = $("sgiven");
+  for (const grp of (sol ? sol.given : [])) {
+    const lab = document.createElement("label"); lab.innerHTML = grp[0]; gv.appendChild(lab);
+    const ids = grp[1]; const row = document.createElement("div");
+    if (ids.length === 1 && $(ids[0]) && $(ids[0]).type === "checkbox") { row.className = "chk"; const m = mirror(ids[0]); row.appendChild(m); lab.remove(); const sp = document.createElement("span"); sp.innerHTML = grp[0]; row.appendChild(sp); }
+    else { row.className = ids.length === 3 && /d$/.test(ids[0]) ? "dms" : "row"; ids.forEach(id => row.appendChild(mirror(id))); }
+    gv.appendChild(row); }
+  refresh();
+}
+function refresh(){
+  if (CUR < 0) return;
+  document.querySelectorAll("#sgiven [data-src]").forEach(m => { if (m === document.activeElement) return; const o = $(m.dataset.src); if (!o) return;
+    if (o.type === "checkbox") m.checked = o.checked; else if (m.value !== o.value) m.value = o.value; });
+  const sol = (typeof SOL !== "undefined" && SOL[EXS[CUR][4]]) || null, t = $("ssol"); if (!t || !sol) return;
+  t.innerHTML = sol.items.map(it => it[0] === "#" ? `<tr><th colspan="2">${it[1]}</th></tr>` : it[1].startsWith("#") ?
+    `<tr${it[0] === "!" ? ' class="hl"' : ""}><td colspan="2" class="txt"><b>${it[2]}</b><br>${lookup(it[1])}</td></tr>` :
+    `<tr${it[0] === "!" ? ' class="hl"' : ""}><td>${it[2]}</td><td class="v">${lookup(it[1])}</td></tr>`).join("");
+}
+function EX(i){
+  CUR = i; EXS[i][0](); const f = document.querySelector("#explore input, #explore select"); if (f) f.dispatchEvent(new Event("input", {bubbles: true}));
+  HL = EXS[i][2] || []; hl();
+  document.querySelectorAll("button.on").forEach(b => b.classList.remove("on"));
   document.querySelectorAll(".exb button").forEach((b, j) => b.classList.toggle("on", j === i));
-  const r = document.querySelector("table.res tr.hl"); if (r && window.innerWidth < 760) r.scrollIntoView({behavior: "smooth", block: "center"}); }
-document.addEventListener("input", () => setTimeout(hl, 0));
-document.addEventListener("change", () => setTimeout(hl, 0));
+  $("explore").style.display = "none"; $("exspace").style.display = ""; $("exnote").style.display = "none";
+  buildSpace(i);
+}
+function EXPLORE(){
+  CUR = -1; HL = []; hl(); $("explore").style.display = ""; $("exspace").style.display = "none"; $("exnote").style.display = "";
+  document.querySelectorAll(".exb button").forEach(b => b.classList.toggle("on", b.id === "bexp"));
+}
+document.addEventListener("input", () => setTimeout(() => { hl(); refresh(); }, 0));
+document.addEventListener("change", () => setTimeout(() => { hl(); refresh(); }, 0));
+/* preset buttons in the calculator: the one pressed shows as selected; typing a new value clears it */
+const PRESETS = () => [...document.querySelectorAll("#explore button")];
+document.addEventListener("click", e => { const b = e.target.closest("button"); if (!b || !b.closest("#explore")) return;
+  PRESETS().forEach(x => x.classList.remove("on")); b.classList.add("on"); });
+document.addEventListener("input", e => { if (e.isTrusted && e.target.closest("#explore")) PRESETS().forEach(x => x.classList.remove("on")); }, true);
+window.addEventListener("load", () => { const p = PRESETS(); if (p.length) p[0].classList.add("on"); if (typeof EXS !== "undefined" && EXS.length) EX(0); });
 
 /* small user-interface helpers */
 const $ = id => document.getElementById(id);
@@ -402,9 +466,10 @@ function calc(){
 }
 reset(); wire(calc);
 
-const EXS = [[function(){reset();}, "S on WGS84. The <b>Station X, Y, Z</b> rows are the result of Example 3.1; the <b>Target minus station</b> rows use J's X, Y, Z as computed in the same way.", ['Station X, Y, Z > X', 'Station X, Y, Z > Y', 'Station X, Y, Z > Z']],
-[function(){reset();}, "The <b>Back to geodetic</b> rows take S's X, Y, Z and iterate back to φ = 1.452 780 008°, λ = 103.769 436 142°, h = 12.014 m: the round trip of Example 3.2.", ['latitude', 'longitude', 'h']],
-[function(){reset();}, 'S to J, as in Example 3.3: e 464.606, n 1 381.944, u 1.818 m; slope distance 1 457.955 m, horizontal 1 457.953 m; azimuth 18° 34′ 56.97″, zenith angle 89° 55′ 42.75″. On the ellipsoid: geodesic 1 457.950 m, azimuth at J 18° 34′ 57.35″.', ['east', 'north', 'up', 'Slope distance', 'Horizontal distance √(e² + n²)', 'Azimuth (from e, n)', 'Zenith angle', 'Geodesic distance', 'Azimuth', 'Azimuth at the target']]];
+const EXS = [[function(){reset();}, 'S on WGS84: X = −1 517 612.859, Y = 6 192 871.891, Z = 160 623.535 m (Example 3.1).', ['Station X, Y, Z > X', 'Station X, Y, Z > Y', 'Station X, Y, Z > Z'], 'Raise the station height by 100 m: X changes by about −24 m, Y by +97 m and Z by only 2.5 m, because at 1.45° N the up direction lies almost in the equatorial plane.', 'Example 3.1'],
+[function(){reset();}, "From S's X, Y, Z back to φ = 1.452 780 008°, λ = 103.769 436 142°, h = 12.014 m: the round trip of Example 3.2.", ['latitude', 'longitude', 'h'], "Change the station's latitude seconds by 1: the back-to-geodetic rows return exactly what you typed. A round trip that returns its input is the first test of any conversion.", 'Example 3.2'],
+[function(){reset();}, 'S to J, as in Example 3.3: e 464.606, n 1 381.944, u 1.818 m; slope distance 1 457.955 m, horizontal 1 457.953 m; azimuth 18° 34′ 56.97″, zenith angle 89° 55′ 42.75″. On the ellipsoid: geodesic 1 457.950 m, azimuth at J 18° 34′ 57.35″.', ['east', 'north', 'up', 'Slope distance', 'Horizontal distance √(e² + n²)', 'Azimuth (from e, n)', 'Zenith angle', 'Geodesic distance', 'Azimuth', 'Azimuth at the target'], 'Raise the target height by 100 m: the slope distance and zenith angle change, but the geodesic distance on the ellipsoid does not. Move the target 1″ of longitude east: it moves 30.9 m east.', 'Example 3.3']];
+const SOL = {"Example 3.1": {"given": [["Latitude of S (° ′ ″)", ["aLatd", "aLatm", "aLats"]], ["Longitude of S (° ′ ″)", ["aLond", "aLonm", "aLons"]], ["Ellipsoidal height h (m)", ["ah"]]], "items": [["#", "Cartesian coordinates of S, WGS84", ""], ["!", "Station X, Y, Z > X", "X = (ν + h) cos φ cos λ"], ["!", "Station X, Y, Z > Y", "Y = (ν + h) cos φ sin λ"], ["!", "Station X, Y, Z > Z", "Z = (ν(1 − e²) + h) sin φ"]]}, "Example 3.2": {"given": [["Latitude of S (° ′ ″)", ["aLatd", "aLatm", "aLats"]], ["Longitude of S (° ′ ″)", ["aLond", "aLonm", "aLons"]], ["Ellipsoidal height h (m)", ["ah"]]], "items": [["#", "Starting point: X, Y, Z of S (Example 3.1)", ""], ["r", "Station X, Y, Z > X", "X"], ["r", "Station X, Y, Z > Y", "Y"], ["r", "Station X, Y, Z > Z", "Z"], ["#", "Back to geodetic by iteration", ""], ["!", "Back to geodetic… > latitude", "φ (iterated)"], ["!", "Back to geodetic… > longitude", "λ = arctan(Y / X)"], ["!", "Back to geodetic… > h", "h = p / cos φ − ν"]]}, "Example 3.3": {"given": [["S: latitude (° ′ ″)", ["aLatd", "aLatm", "aLats"]], ["S: longitude (° ′ ″)", ["aLond", "aLonm", "aLons"]], ["S: h (m)", ["ah"]], ["J: latitude (° ′ ″)", ["bLatd", "bLatm", "bLats"]], ["J: longitude (° ′ ″)", ["bLond", "bLonm", "bLons"]], ["J: h (m)", ["bh"]]], "items": [["#", "Steps 1–3. Cartesian vector J minus S", ""], ["r", "Target minus station > ΔX", "ΔX"], ["r", "Target minus station > ΔY", "ΔY"], ["r", "Target minus station > ΔZ", "ΔZ"], ["#", "Steps 4–6. Rotate into east, north, up at S", ""], ["!", "Local east… > east", "e"], ["!", "Local east… > north", "n"], ["!", "Local east… > up", "u"], ["#", "Steps 7–10. Distances and angles", ""], ["!", "Slope distance", "Slope distance √(e² + n² + u²)"], ["!", "Horizontal distance √(e² + n²)", "Horizontal distance √(e² + n²)"], ["!", "Azimuth (from e, n)", "Azimuth arctan(e / n)"], ["!", "Zenith angle", "Zenith angle"], ["#", "Discussion: on the ellipsoid (Vincenty)", ""], ["r", "On the ellipsoid… > Geodesic distance", "Geodesic distance"], ["r", "On the ellipsoid… > Azimuth", "Azimuth at S"], ["r", "On the ellipsoid… > Azimuth at the target", "Azimuth at J"]]}};
 
 </script>
 </body>
