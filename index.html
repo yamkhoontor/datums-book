@@ -1,1 +1,298 @@
-<!doctype html><meta charset="utf-8"><meta http-equiv="refresh" content="0; url=apps/index.html"><title>Companion apps</title><p><a href="apps/index.html">Open the companion apps</a></p>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Companion apps</title>
+<style>a{color:var(--accent)}
+:root{--ink:#16202b;--quiet:#55606d;--line:#c9d3de;--pale:#eef3f8;--paper:#ffffff;--accent:#1f5fa8;--dark:#1f3b5c;--warn:#b42318;--ok:#1a7f37;--orange:#c2410c}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--ink:#e6edf3;--quiet:#9aa7b4;--line:#33414f;--pale:#1b2836;--paper:#0f1720;--accent:#6ea8ff;--dark:#9cc3f0;--warn:#ff7b72;--ok:#56d364;--orange:#f0883e}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font:15px/1.5 Georgia,"Times New Roman",serif}
+header{background:var(--dark);color:#fff;padding:14px 18px}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) header{background:#16283c}}
+header .num{font:600 12px/1 system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;opacity:.8}
+header h1{font-size:21px;margin:4px 0 2px}
+header p{margin:0;opacity:.9;font-size:14px}
+main{max-width:1100px;margin:0 auto;padding:16px}
+.grid{display:grid;grid-template-columns:minmax(260px,340px) 1fr;gap:16px}
+@media (max-width:760px){.grid{grid-template-columns:1fr}}
+.card{border:1px solid var(--line);border-radius:10px;padding:12px 14px;background:var(--paper)}
+.card h2{font:600 13px/1.2 system-ui,sans-serif;text-transform:uppercase;letter-spacing:.06em;color:var(--quiet);margin:2px 0 10px}
+label{display:block;font:13px/1.3 system-ui,sans-serif;color:var(--quiet);margin:8px 0 3px}
+input[type=number],input[type=text],select{width:100%;padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:var(--paper);color:var(--ink);font:14px/1.3 ui-monospace,Consolas,monospace}
+input[type=range]{width:100%}
+.row{display:flex;gap:6px}.row>*{flex:1}
+.dms{display:grid;grid-template-columns:1fr 1fr 1.6fr;gap:6px}
+button{font:600 13px system-ui,sans-serif;padding:7px 12px;border-radius:6px;border:1px solid var(--accent);background:var(--accent);color:#fff;cursor:pointer;margin-top:10px}
+button.ghost{background:transparent;color:var(--accent)}
+table.res{width:100%;border-collapse:collapse;font:14px/1.35 ui-monospace,Consolas,monospace}
+table.res td,table.res th{padding:4px 6px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+table.res th{font:600 12px system-ui,sans-serif;color:var(--quiet)}
+table.res td.v{text-align:right;white-space:nowrap}
+.note{font-size:13.5px;color:var(--quiet)}
+.exbar{margin-bottom:14px}.exb button{margin:0 6px 6px 0}.exb button.on{background:var(--accent);color:#fff}
+button:not(.on){background:transparent;color:var(--accent)}button.on{background:var(--accent);color:#fff}
+#exnote{margin:4px 0 0}
+table.res tr.hl td{background:#ffe9a8;font-weight:700}
+table.res td.txt{font:14px/1.45 Georgia,serif;white-space:normal}table.res td.txt p{margin:4px 0}
+#exspace .grid{grid-template-columns:minmax(260px,360px) 1fr}#sgiven textarea{width:100%;font:12px ui-monospace,monospace}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) table.res tr.hl td{background:#4a3b0c}}
+table.res tr.hl td:first-child{box-shadow:inset 4px 0 0 #d4a017}
+.try{background:var(--pale);border-radius:10px;padding:10px 14px;margin-top:16px;font-size:14px}
+.try b{color:var(--dark)}
+.warn{color:var(--warn)}.ok{color:var(--ok)}
+svg{width:100%;height:auto;display:block}
+svg text{font-family:system-ui,sans-serif;font-variant-numeric:lining-nums;fill:var(--ink)}
+.chk{display:flex;align-items:center;gap:6px;font:14px system-ui,sans-serif;margin:3px 0}
+footer{max-width:1100px;margin:10px auto 30px;padding:0 16px;font-size:12px;color:var(--quiet)}
+</style>
+</head>
+<body>
+<header><div class="num">Datums, Coordinate Systems and Map Projections</div><h1>Companion apps</h1><p>One app for each chapter, with a button for each worked example</p></header>
+<main>
+<div class="card"><p>Open any app below in a web browser. Each runs entirely on this computer, with no
+internet connection and nothing to install. Change the values in the boxes and the results
+update at once. Every app opens with the book's example marks S, J and B, and has a button for each worked example in its chapter.</p>
+<table class="res"><tr><td>App 1 · Chapter 1</td><td><a href="apps/app01_one_point.html">One point, many coordinates</a><br><span class="note">The same physical mark described in six ways. Only the numbers change; the mark stays where it is.</span></td></tr>
+<tr><td>App 2 · Chapter 2</td><td><a href="apps/app02_ellipsoid.html">The ellipsoid and its curvature</a><br><span class="note">How the size and flattening of the ellipsoid set the length of a second of arc, wherever the work is.</span></td></tr>
+<tr><td>App 3 · Chapter 3</td><td><a href="apps/app03_coordinates.html">From latitude and longitude to X, Y, Z and to east, north, up</a><br><span class="note">The line from S to J, computed three ways: as a Cartesian vector, in local east-north-up, and on the ellipsoid.</span></td></tr>
+<tr><td>App 4 · Chapter 4</td><td><a href="apps/app04_heights.html">GNSS height to reduced level</a><br><span class="note">H = h − N. Fit a local geoid surface to benchmarks with both a GNSS height and a levelled height, then use it at a new point.</span></td></tr>
+<tr><td>App 5 · Chapter 5</td><td><a href="apps/app05_kertau.html">Old datum, new datum: Kertau 1968 and the modern datum</a><br><span class="note">A position moved between the modern geocentric datum and the old Kertau 1968 datum, in either direction, by the three translations of Table 5.2.</span></td></tr>
+<tr><td>App 6 · Chapter 6</td><td><a href="apps/app06_frames.html">One mark, several ITRF realisations</a><br><span class="note">How far apart are ITRF2020, ITRF2014, ITRF2008, ITRF2005 and ITRF2000 at the same place and the same epoch?</span></td></tr>
+<tr><td>App 7 · Chapter 7</td><td><a href="apps/app07_plate.html">A moving Earth: how far has the mark travelled?</a><br><span class="note">Velocity of a point on the Sunda plate from its Euler pole, and the distance travelled between two epochs.</span></td></tr>
+<tr><td>App 8 · Chapter 8</td><td><a href="apps/app08_svy21.html">From a GNSS campaign to SVY21</a><br><span class="note">Bring a mark positioned in ITRF2020 today onto SVY21, by measuring the shift at SVY21 control marks observed in the same campaign.</span></td></tr>
+<tr><td>App 9 · Chapter 9</td><td><a href="apps/app09_helmert.html">The seven-parameter transformation, one parameter at a time</a><br><span class="note">See what each translation, rotation and the scale do to points across the project area, and what a wrong sign convention costs.</span></td></tr>
+<tr><td>App 10 · Chapter 10</td><td><a href="apps/app10_fit.html">Fitting a site grid to SVY21 by least squares</a><br><span class="note">Four parameters (scale, rotation, two shifts) from common points, with residuals, a check point, and a deliberate blunder.</span></td></tr>
+<tr><td>App 11 · Chapter 11</td><td><a href="apps/app11_crossborder.html">One mark, three countries</a><br><span class="note">A mark positioned in ITRF2020 in a common campaign, expressed on SVY21 (Singapore), GDM2000 (Malaysia) and SRGI2013 (Indonesia), and on each country's grids.</span></td></tr>
+<tr><td>App 12 · Chapter 12</td><td><a href="apps/app12_distortion.html">One line on two grids; reading a projection definition</a><br><span class="note">The same line on SVY21 and on UTM zone 48N, compared with the line on the ellipsoid; and a projection definition, as supplied with a GIS file, checked against a known point.</span></td></tr>
+<tr><td>App 13 · Chapter 13</td><td><a href="apps/app13_svy21tm.html">SVY21 grid converter, with a check against SiReNT</a><br><span class="note">Latitude and longitude to SVY21 northing and easting and back, with scale factor and convergence, tested on published stations.</span></td></tr>
+<tr><td>App 14 · Chapter 14</td><td><a href="apps/app14_projections.html">One line, five grids</a><br><span class="note">The line S–J on SVY21, UTM 48N, the Johor Cassini grid, the Peninsula RSO and Web Mercator, compared with the true line on the ellipsoid.</span></td></tr>
+<tr><td>App 15 · Chapter 15</td><td><a href="apps/app15_ground.html">Grid distance or ground distance?</a><br><span class="note">Reduce a measured distance to the grid, or turn a design (grid) distance into the length to set out on the ground.</span></td></tr>
+<tr><td>App 16 · Chapter 16</td><td><a href="apps/app16_diagnose.html">Why don't my coordinates agree? Reading a mismatch</a><br><span class="note">Figure 16.1 as a calculator: enter the coordinates you expected and those you received; the size and direction of the difference point to the likely cause.</span></td></tr></table></div>
+</main>
+<footer>Companion app to <i>Datums, Coordinate Systems and Map Projections</i> by Yam Khoon Tor. &copy; 2026 Yam Khoon Tor. A teaching aid, provided without warranty: check results independently before use in survey work. The running-case points are illustrative.</footer>
+<script>
+/* geo.js - geodetic functions of "Datums, Coordinate Systems and Map Projections"
+   (Yam Khoon Tor). A line-for-line port of the book's Python listings.
+   Copyright (c) 2026 Yam Khoon Tor. Teaching aid, without warranty. */
+"use strict";
+const GEO = (() => {
+  const D2R = Math.PI / 180, R2D = 180 / Math.PI;
+  const ARCSEC = D2R / 3600, MAS = ARCSEC / 1000;
+  const ELLIPSOIDS = {
+    "WGS84": [6378137.0, 298.257223563],
+    "GRS80": [6378137.0, 298.257222101],
+    "Everest 1830 (Modified)": [6377304.063, 300.8017],
+  };
+  const atanh = Math.atanh, sinh = Math.sinh, cosh = Math.cosh, tanh = Math.tanh;
+
+  function constants(a, invf) {
+    const f = 1 / invf, b = a * (1 - f), e2 = 2 * f - f * f;
+    return { a, f, b, e2, ep2: e2 / (1 - e2), n: f / (2 - f) };
+  }
+  function dmsToDeg(d, m, s) { const sg = d < 0 ? -1 : 1; return sg * (Math.abs(d) + m / 60 + s / 3600); }
+  function degToDms(x, places = 4) {
+    const sign = x < 0 ? "-" : ""; x = Math.abs(x);
+    const t = Math.round(x * 3600 * 10 ** places) / 10 ** places;
+    const d = Math.floor(t / 3600), m = Math.floor((t - d * 3600) / 60), s = t - d * 3600 - m * 60;
+    return `${sign}${d}° ${String(m).padStart(2, "0")}' ${s.toFixed(places).padStart(3 + places, "0")}"`;
+  }
+  function radii(latDeg, a, invf) {
+    const c = constants(a, invf), p = latDeg * D2R, w2 = 1 - c.e2 * Math.sin(p) ** 2;
+    const nu = a / Math.sqrt(w2), M = a * (1 - c.e2) / w2 ** 1.5;
+    return { M, nu, R: Math.sqrt(M * nu) };
+  }
+  function geodeticToEcef(lat, lon, h, a, invf) {
+    const e2 = constants(a, invf).e2, p = lat * D2R, l = lon * D2R;
+    const nu = a / Math.sqrt(1 - e2 * Math.sin(p) ** 2);
+    return [(nu + h) * Math.cos(p) * Math.cos(l), (nu + h) * Math.cos(p) * Math.sin(l), (nu * (1 - e2) + h) * Math.sin(p)];
+  }
+  function ecefToGeodetic(X, Y, Z, a, invf) {
+    const e2 = constants(a, invf).e2, lam = Math.atan2(Y, X), p = Math.hypot(X, Y);
+    let phi = Math.atan2(Z, p * (1 - e2));
+    for (let i = 0; i < 20; i++) {
+      const nu = a / Math.sqrt(1 - e2 * Math.sin(phi) ** 2);
+      const pn = Math.atan2(Z + e2 * nu * Math.sin(phi), p);
+      const done = Math.abs(pn - phi) < 1e-12; phi = pn; if (done) break;
+    }
+    const nu = a / Math.sqrt(1 - e2 * Math.sin(phi) ** 2);
+    const h = Math.abs(Math.cos(phi)) > 1e-3 ? p / Math.cos(phi) - nu : Z / Math.sin(phi) - nu * (1 - e2);
+    return [phi * R2D, lam * R2D, h];
+  }
+  function ecefToEnu(dX, dY, dZ, lat0, lon0) {
+    const sp = Math.sin(lat0 * D2R), cp = Math.cos(lat0 * D2R), sl = Math.sin(lon0 * D2R), cl = Math.cos(lon0 * D2R);
+    return [-sl * dX + cl * dY, -sp * cl * dX - sp * sl * dY + cp * dZ, cp * cl * dX + cp * sl * dY + sp * dZ];
+  }
+  function vincenty(lat1, lon1, lat2, lon2, a, invf) {
+    const c = constants(a, invf), f = c.f, b = c.b;
+    const U1 = Math.atan((1 - f) * Math.tan(lat1 * D2R)), U2 = Math.atan((1 - f) * Math.tan(lat2 * D2R));
+    const L = (lon2 - lon1) * D2R; let lam = L, ss, cs, sig, c2a, c2sm;
+    for (let i = 0; i < 100; i++) {
+      const sl = Math.sin(lam), cl = Math.cos(lam);
+      ss = Math.hypot(Math.cos(U2) * sl, Math.cos(U1) * Math.sin(U2) - Math.sin(U1) * Math.cos(U2) * cl);
+      cs = Math.sin(U1) * Math.sin(U2) + Math.cos(U1) * Math.cos(U2) * cl;
+      sig = Math.atan2(ss, cs);
+      const sa = Math.cos(U1) * Math.cos(U2) * sl / ss; c2a = 1 - sa * sa;
+      c2sm = c2a ? cs - 2 * Math.sin(U1) * Math.sin(U2) / c2a : 0;
+      const C = f / 16 * c2a * (4 + f * (4 - 3 * c2a));
+      const ln = L + (1 - C) * f * sa * (sig + C * ss * (c2sm + C * cs * (-1 + 2 * c2sm ** 2)));
+      const done = Math.abs(ln - lam) < 1e-13; lam = ln; if (done) break;
+    }
+    const u2 = c2a * (a * a - b * b) / (b * b);
+    const A = 1 + u2 / 16384 * (4096 + u2 * (-768 + u2 * (320 - 175 * u2)));
+    const B = u2 / 1024 * (256 + u2 * (-128 + u2 * (74 - 47 * u2)));
+    const ds = B * ss * (c2sm + B / 4 * (cs * (-1 + 2 * c2sm ** 2) - B / 6 * c2sm * (-3 + 4 * ss ** 2) * (-3 + 4 * c2sm ** 2)));
+    const s = b * A * (sig - ds);
+    const az1 = (Math.atan2(Math.cos(U2) * Math.sin(lam), Math.cos(U1) * Math.sin(U2) - Math.sin(U1) * Math.cos(U2) * Math.cos(lam)) * R2D + 360) % 360;
+    const az2 = (Math.atan2(Math.cos(U1) * Math.sin(lam), -Math.sin(U1) * Math.cos(U2) + Math.cos(U1) * Math.sin(U2) * Math.cos(lam)) * R2D + 360) % 360;
+    return [s, az1, az2];
+  }
+  /* ---- Transverse Mercator (Krüger) ---- */
+  function kruger(a, invf) {
+    const f = 1 / invf, n = f / (2 - f);
+    const B = a / (1 + n) * (1 + n ** 2 / 4 + n ** 4 / 64 + n ** 6 / 256);
+    const alpha = [n / 2 - 2 * n ** 2 / 3 + 5 * n ** 3 / 16 + 41 * n ** 4 / 180, 13 * n ** 2 / 48 - 3 * n ** 3 / 5 + 557 * n ** 4 / 1440,
+      61 * n ** 3 / 240 - 103 * n ** 4 / 140, 49561 * n ** 4 / 161280];
+    const beta = [n / 2 - 2 * n ** 2 / 3 + 37 * n ** 3 / 96 - n ** 4 / 360, n ** 2 / 48 + n ** 3 / 15 - 437 * n ** 4 / 1440,
+      17 * n ** 3 / 480 - 37 * n ** 4 / 840, 4397 * n ** 4 / 161280];
+    return { B, alpha, beta, e: Math.sqrt(2 * f - f * f), n };
+  }
+  function xiEta(lat, dlon, e) {
+    const p = lat * D2R, t = sinh(atanh(Math.sin(p)) - e * atanh(e * Math.sin(p)));
+    return [Math.atan2(t, Math.cos(dlon)), atanh(Math.sin(dlon) / Math.sqrt(1 + t * t)), t];
+  }
+  function tmForward(lat, lon, lat0, lon0, k0, FN, FE, a, invf) {
+    const K = kruger(a, invf), [xi, eta] = xiEta(lat, (lon - lon0) * D2R, K.e);
+    let X = xi, Y = eta;
+    for (let j = 0; j < 4; j++) { X += K.alpha[j] * Math.sin(2 * (j + 1) * xi) * cosh(2 * (j + 1) * eta); Y += K.alpha[j] * Math.cos(2 * (j + 1) * xi) * sinh(2 * (j + 1) * eta); }
+    const xi0 = xiEta(lat0, 0, K.e)[0]; let X0 = xi0;
+    for (let j = 0; j < 4; j++) X0 += K.alpha[j] * Math.sin(2 * (j + 1) * xi0);
+    return [FN + k0 * K.B * (X - X0), FE + k0 * K.B * Y];
+  }
+  function tmInverse(N, E, lat0, lon0, k0, FN, FE, a, invf) {
+    const K = kruger(a, invf), xi0 = xiEta(lat0, 0, K.e)[0]; let X0 = xi0;
+    for (let j = 0; j < 4; j++) X0 += K.alpha[j] * Math.sin(2 * (j + 1) * xi0);
+    const X = (N - FN) / (k0 * K.B) + X0, Y = (E - FE) / (k0 * K.B);
+    let xi = X, eta = Y;
+    for (let j = 0; j < 4; j++) { xi -= K.beta[j] * Math.sin(2 * (j + 1) * X) * cosh(2 * (j + 1) * Y); eta -= K.beta[j] * Math.cos(2 * (j + 1) * X) * sinh(2 * (j + 1) * Y); }
+    const chi = Math.asin(Math.sin(xi) / cosh(eta)), dlon = Math.atan2(sinh(eta), Math.cos(xi));
+    let phi = chi;
+    for (let i = 0; i < 10; i++) { const pn = Math.asin(tanh(atanh(Math.sin(chi)) + K.e * atanh(K.e * Math.sin(phi)))); const done = Math.abs(pn - phi) < 1e-14; phi = pn; if (done) break; }
+    return [phi * R2D, lon0 + dlon * R2D];
+  }
+  function tmScaleConv(lat, lon, lon0, k0, a, invf) {
+    const K = kruger(a, invf), dl = (lon - lon0) * D2R, [xi, eta, t] = xiEta(lat, dl, K.e);
+    let sigma = 1, tau = 0;
+    for (let j = 0; j < 4; j++) { const m = 2 * (j + 1); sigma += m * K.alpha[j] * Math.cos(m * xi) * cosh(m * eta); tau += m * K.alpha[j] * Math.sin(m * xi) * sinh(m * eta); }
+    const p = lat * D2R, n = K.n;
+    const k = k0 * K.B / a * Math.sqrt((1 + ((1 - n) / (1 + n) * Math.tan(p)) ** 2) * (sigma ** 2 + tau ** 2) / (t * t + Math.cos(dl) ** 2));
+    const g = Math.atan2(tau * Math.sqrt(1 + t * t) + sigma * t * Math.tan(dl), sigma * Math.sqrt(1 + t * t) - tau * t * Math.tan(dl));
+    return [k, g * R2D];
+  }
+  /* ---- Cassini-Soldner ---- */
+  function meridianArc(lat, a, invf) {
+    const e2 = constants(a, invf).e2, p = lat * D2R, e4 = e2 * e2, e6 = e2 ** 3;
+    return a * ((1 - e2 / 4 - 3 * e4 / 64 - 5 * e6 / 256) * p - (3 * e2 / 8 + 3 * e4 / 32 + 45 * e6 / 1024) * Math.sin(2 * p)
+      + (15 * e4 / 256 + 45 * e6 / 1024) * Math.sin(4 * p) - (35 * e6 / 3072) * Math.sin(6 * p));
+  }
+  function footpoint(m1, a, invf) {
+    const e2 = constants(a, invf).e2, e4 = e2 * e2, e6 = e2 ** 3;
+    const mu = m1 / (a * (1 - e2 / 4 - 3 * e4 / 64 - 5 * e6 / 256)), e1 = (1 - Math.sqrt(1 - e2)) / (1 + Math.sqrt(1 - e2));
+    return mu + (3 * e1 / 2 - 27 * e1 ** 3 / 32) * Math.sin(2 * mu) + (21 * e1 ** 2 / 16 - 55 * e1 ** 4 / 32) * Math.sin(4 * mu)
+      + (151 * e1 ** 3 / 96) * Math.sin(6 * mu) + (1097 * e1 ** 4 / 512) * Math.sin(8 * mu);
+  }
+  function cassiniForward(lat, lon, lat0, lon0, FN, FE, a, invf) {
+    const c = constants(a, invf), p = lat * D2R, nu = a / Math.sqrt(1 - c.e2 * Math.sin(p) ** 2);
+    const A = (lon - lon0) * D2R * Math.cos(p), T = Math.tan(p) ** 2, C = c.ep2 * Math.cos(p) ** 2;
+    const E = FE + nu * (A - T * A ** 3 / 6 - (8 - T + 8 * C) * T * A ** 5 / 120);
+    const N = FN + meridianArc(lat, a, invf) - meridianArc(lat0, a, invf) + nu * Math.tan(p) * (A ** 2 / 2 + (5 - T + 6 * C) * A ** 4 / 24);
+    return [N, E];
+  }
+  /* ---- Hotine oblique Mercator, variant A ---- */
+  function homSetup(latc, lonc, azc, gammac, kc, FE, FN, a, invf) {
+    const e2 = constants(a, invf).e2, e = Math.sqrt(e2), pc = latc * D2R, lc = lonc * D2R, ac = azc * D2R, gc = gammac * D2R;
+    const B = Math.sqrt(1 + e2 * Math.cos(pc) ** 4 / (1 - e2));
+    const A = a * B * kc * Math.sqrt(1 - e2) / (1 - e2 * Math.sin(pc) ** 2);
+    const t0 = Math.tan(Math.PI / 4 - pc / 2) / ((1 - e * Math.sin(pc)) / (1 + e * Math.sin(pc))) ** (e / 2);
+    const D = B * Math.sqrt(1 - e2) / (Math.cos(pc) * Math.sqrt(1 - e2 * Math.sin(pc) ** 2));
+    const F = D + Math.sqrt(Math.max(D * D, 1) - 1) * (latc >= 0 ? 1 : -1), H = F * t0 ** B, G = (F - 1 / F) / 2;
+    const g0 = Math.asin(Math.sin(ac) / D), l0 = lc - Math.asin(G * Math.tan(g0)) / B;
+    return { e, A, B, H, g0, l0, gc, FE, FN };
+  }
+  function homForward(lat, lon, P) {
+    const p = lat * D2R, l = lon * D2R, e = P.e;
+    const t = Math.tan(Math.PI / 4 - p / 2) / ((1 - e * Math.sin(p)) / (1 + e * Math.sin(p))) ** (e / 2);
+    const Q = P.H / t ** P.B, S = (Q - 1 / Q) / 2, T = (Q + 1 / Q) / 2, V = Math.sin(P.B * (l - P.l0));
+    const U = (-V * Math.cos(P.g0) + S * Math.sin(P.g0)) / T;
+    const v = P.A * Math.log((1 - U) / (1 + U)) / (2 * P.B);
+    const u = P.A * Math.atan2(S * Math.cos(P.g0) + V * Math.sin(P.g0), Math.cos(P.B * (l - P.l0))) / P.B;
+    return [u * Math.cos(P.gc) - v * Math.sin(P.gc) + P.FN, v * Math.cos(P.gc) + u * Math.sin(P.gc) + P.FE];
+  }
+  /* ---- datum transformations ---- */
+  function helmert7(X, T, Rsec, sppm, convention = "position_vector") {
+    let [rx, ry, rz] = Rsec.map(r => r * ARCSEC);
+    if (convention === "coordinate_frame") { rx = -rx; ry = -ry; rz = -rz; }
+    const m = 1 + sppm * 1e-6, [x, y, z] = X;
+    return [T[0] + m * (x - rz * y + ry * z), T[1] + m * (rz * x + y - rx * z), T[2] + m * (-ry * x + rx * y + z)];
+  }
+  function helmert14(X, params, rates, t0, t) {
+    const p = params.map((v, i) => v + rates[i] * (t - t0));
+    const [x, y, z] = X, D = p[3] * 1e-9, R1 = p[4] * MAS, R2 = p[5] * MAS, R3 = p[6] * MAS;
+    return [x + p[0] / 1000 + D * x - R3 * y + R2 * z, y + p[1] / 1000 + R3 * x + D * y - R1 * z, z + p[2] / 1000 - R2 * x + R1 * y + D * z];
+  }
+  function eulerVelocity(lat, lon, plat, plon, rateDegMyr, R = 6371000) {
+    const w = rateDegMyr * D2R * 1e-6, pl = plat * D2R, pp = plon * D2R;
+    const wx = w * Math.cos(pl) * Math.cos(pp), wy = w * Math.cos(pl) * Math.sin(pp), wz = w * Math.sin(pl);
+    const p = lat * D2R, l = lon * D2R;
+    const x = R * Math.cos(p) * Math.cos(l), y = R * Math.cos(p) * Math.sin(l), z = R * Math.sin(p);
+    const V = [wy * z - wz * y, wz * x - wx * z, wx * y - wy * x];
+    const [ve, vn] = ecefToEnu(V[0], V[1], V[2], lat, lon);
+    return { ve, vn, V };
+  }
+  /* ---- small least squares solver (normal equations, Gauss-Jordan) ---- */
+  function lsq(A, L) {
+    const u = A[0].length, N = Array.from({ length: u }, () => Array(u + 1).fill(0));
+    A.forEach((row, i) => { for (let r = 0; r < u; r++) { for (let c = 0; c < u; c++) N[r][c] += row[r] * row[c]; N[r][u] += row[r] * L[i]; } });
+    const M = N.map(r => r.slice()), inv = Array.from({ length: u }, (_, i) => Array.from({ length: u }, (_, j) => +(i === j)));
+    for (let c = 0; c < u; c++) {
+      let piv = c; for (let r = c + 1; r < u; r++) if (Math.abs(M[r][c]) > Math.abs(M[piv][c])) piv = r;
+      [M[c], M[piv]] = [M[piv], M[c]]; [inv[c], inv[piv]] = [inv[piv], inv[c]];
+      const d = M[c][c];
+      for (let k = 0; k <= u; k++) M[c][k] /= d; for (let k = 0; k < u; k++) inv[c][k] /= d;
+      for (let r = 0; r < u; r++) if (r !== c) { const f = M[r][c]; for (let k = 0; k <= u; k++) M[r][k] -= f * M[c][k]; for (let k = 0; k < u; k++) inv[r][k] -= f * inv[c][k]; }
+    }
+    const x = M.map(r => r[u]), v = A.map((row, i) => row.reduce((s, a, j) => s + a * x[j], 0) - L[i]);
+    const dof = L.length - u, s0 = dof > 0 ? Math.sqrt(v.reduce((s, a) => s + a * a, 0) / dof) : NaN;
+    return { x, v, s0, Qxx: inv };
+  }
+  /* ---- grids of the book ---- */
+  const SVY21 = [dmsToDeg(1, 22, 0), dmsToDeg(103, 50, 0), 1.0, 38744.572, 28001.642];
+  const JOHOR = [dmsToDeg(2, 2, 33.20196), dmsToDeg(103, 33, 39.83730)];
+  const RSO = () => homSetup(4.0, 102.25, dmsToDeg(323, 1, 32.8458), dmsToDeg(323, 7, 48.3685), 0.99984, 804671.0, 0.0, ...ELLIPSOIDS.GRS80);
+  function utmZone(lon) { return Math.floor((lon + 180) / 6) + 1; }
+  function utm(lat, lon, a, invf) { const z = utmZone(lon), cm = 6 * z - 183; const [N, E] = tmForward(lat, lon, 0, cm, 0.9996, lat < 0 ? 10000000 : 0, 500000, a, invf); return { zone: z, cm, N, E }; }
+  const fmt = (x, d = 3) => { const [i, f] = Math.abs(x).toFixed(d).split("."); return (x < 0 ? "−" : "") + i.replace(/\B(?=(\d{3})+(?!\d))/g, " ") + (f ? "." + f : ""); };
+  return { D2R, R2D, ARCSEC, ELLIPSOIDS, constants, dmsToDeg, degToDms, radii, geodeticToEcef, ecefToGeodetic, ecefToEnu, vincenty,
+    tmForward, tmInverse, tmScaleConv, meridianArc, footpoint, cassiniForward, homSetup, homForward, helmert7, helmert14, eulerVelocity,
+    lsq, SVY21, JOHOR, RSO, utm, utmZone, fmt };
+})();
+// if (typeof module !== "undefined") module.exports = GEO;
+
+/* small user-interface helpers */
+const $ = id => document.getElementById(id);
+const val = id => parseFloat($(id).value);
+const dmsIn = id => GEO.dmsToDeg(val(id + "d"), val(id + "m"), val(id + "s"));
+const F = GEO.fmt;
+function rows(list){ return list.map(r => r.length === 1 ? `<tr><th colspan="2">${r[0]}</th></tr>` : `<tr><td>${r[0]}</td><td class="v">${r[1]}</td></tr>`).join(""); }
+function setDms(id, deg){ const t = Math.round(Math.abs(deg) * 3600 * 1e5) / 1e5; const d = Math.floor(t / 3600), m = Math.floor((t - d * 3600) / 60);
+  $(id + "d").value = d * (deg < 0 ? -1 : 1); $(id + "m").value = m; $(id + "s").value = (t - d * 3600 - m * 60).toFixed(5); }
+function wire(fn){ document.querySelectorAll("input,select").forEach(e => e.addEventListener("input", fn)); fn(); }
+function svgEl(tag, attrs, text){ const e = document.createElementNS("http://www.w3.org/2000/svg", tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (text !== undefined) e.textContent = text; return e; }
+function arrowDefs(svg, id, colour){ const d = svgEl("defs", {}); const m = svgEl("marker", {id, viewBox:"0 0 10 10", refX:9, refY:5, markerWidth:7, markerHeight:7, orient:"auto-start-reverse"});
+  m.appendChild(svgEl("path", {d:"M0 0L10 5L0 10z", fill:colour})); d.appendChild(m); svg.appendChild(d); }
+const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+
+</script>
+</body>
+</html>
